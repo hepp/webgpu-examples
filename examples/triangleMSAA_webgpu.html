@@ -33,6 +33,8 @@
                 alphaMode: 'opaque',
             });
 
+            const sampleCount = 4;
+
             const shaderModule = device.createShaderModule({
                 code: `
                 @vertex
@@ -71,19 +73,30 @@
                 primitive: {
                     topology: "triangle-list",
                 },
+                multisample: {
+                    count: 4,
+                },
             });
+
+            const texture = device.createTexture({
+                size: presentationSize,
+                sampleCount,
+                format: presentationFormat,
+                usage: GPUTextureUsage.RENDER_ATTACHMENT,
+            });
+            const view = texture.createView();
 
             function frame() {
                 const commandEncoder = device.createCommandEncoder();
-                const textureView = context.getCurrentTexture().createView();
 
                 const renderPassDescriptor = {
                     colorAttachments: [
                         {
-                            view: textureView,
+                            view,
+                            resolveTarget: context.getCurrentTexture().createView(),
                             clearValue: { r: 0.0, g: 0.0, b: 0.0, a: 1.0 },
                             loadOp: 'clear',
-                            storeOp: 'store',
+                            storeOp: 'discard',
                         },
                     ],
                 };

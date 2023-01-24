@@ -247,12 +247,14 @@
                 rule2Scale: 0.05,
                 rule3Scale: 0.005,
             };
+            console.log('Sim Params:', simParams);
 
             const simParamBufferSize = 7 * Float32Array.BYTES_PER_ELEMENT;
             const simParamBuffer = device.createBuffer({
                 size: simParamBufferSize,
                 usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
             });
+            console.log('Uniform Buffer Size:', simParamBufferSize);
 
             function updateSimParams() {
                 device.queue.writeBuffer(
@@ -290,6 +292,7 @@
                 initialParticleData[4 * i + 2] = 2 * (Math.random() - 0.5) * 0.1;
                 initialParticleData[4 * i + 3] = 2 * (Math.random() - 0.5) * 0.1;
             }
+            console.log('Particle Count:', numParticles);
 
             const particleBuffers = new Array(2);
             const particleBindGroups = new Array(2);

@@ -118,6 +118,7 @@
           1, -1, -1, 1,  1, 0, 0, 1,  1, 1,
           -1, 1, -1, 1,  0, 1, 0, 1,  0, 0,
       ]);
+      console.log('Vertices:', cubeVertexArray);
 
 
       const verticesBuffer = device.createBuffer({
@@ -212,6 +213,8 @@
         const promises = imgSrcs.map((src) => {
           const img = document.createElement('img');
           img.src = src;
+
+          console.log('Loaded Media:', src);
           return img.decode().then(() => createImageBitmap(img));
         });
         const imageBitmaps = await Promise.all(promises);
@@ -243,6 +246,7 @@
         size: uniformBufferSize,
         usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
       });
+      console.log('Uniform Buffer Size:', uniformBufferSize);
 
       const sampler = device.createSampler({
         magFilter: 'linear',

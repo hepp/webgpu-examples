@@ -120,6 +120,7 @@
           1, -1, -1, 1,  1, 0, 0, 1,  1, 1,
           -1, 1, -1, 1,  0, 1, 0, 1,  0, 0,
       ]);
+      console.log('Vertices:', cubeVertexArray);
 
       const verticesBuffer = device.createBuffer({
         size: cubeVertexArray.byteLength,
@@ -181,6 +182,7 @@
         size: uniformBufferSize,
         usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
       });
+      console.log('Uniform Buffer Size:', uniformBufferSize);
 
       // We will copy the frame's rendering results into this texture and
       // sample it on the next frame.

@@ -113,6 +113,7 @@
           1, -1, -1, 1,  1, 0, 0, 1,  1, 1,
           -1, 1, -1, 1,  0, 1, 0, 1,  0, 0,
       ]);
+      console.log('Vertices:', cubeVertexArray);
 
       const verticesBuffer = device.createBuffer({
         size: cubeVertexArray.byteLength,
@@ -175,8 +176,9 @@
       const numInstances = xCount * yCount;
       const matrixFloatCount = 16;
       const matrixSize = 4 * matrixFloatCount;
-
       const uniformBufferSize = numInstances * matrixSize;
+      console.log('Cube Instances:', numInstances);
+      console.log('Buffer Size:', uniformBufferSize);
 
 
       const uniformBuffer = device.createBuffer({

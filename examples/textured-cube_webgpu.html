@@ -116,6 +116,7 @@
           1, -1, -1, 1,  1, 0, 0, 1,  1, 1,
           -1, 1, -1, 1,  0, 1, 0, 1,  0, 0,
       ]);
+      console.log('Vertices:', cubeVertexArray);
 
       const verticesBuffer = device.createBuffer({
         size: cubeVertexArray.byteLength,
@@ -178,6 +179,7 @@
         size: uniformBufferSize,
         usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
       });
+      console.log('Uniform Buffer Size:', uniformBufferSize);
 
       let cubeTexture;
       {
@@ -186,6 +188,8 @@
           `../assets/crate.gif`,
           document.baseURI
         ).href;
+        console.log('Loaded Media:', img.src);
+        
         await img.decode();
         const imageBitmap = await createImageBitmap(img);
 

@@ -113,6 +113,7 @@
                 1, -1, -1, 1,  1, 0, 0, 1,  1, 1,
                 -1, 1, -1, 1,  0, 1, 0, 1,  0, 0,
             ]);
+            console.log('Vertices:', cubeVertexArray);
 
             const verticesBuffer = device.createBuffer({
                 size: cubeVertexArray.byteLength,
@@ -174,6 +175,7 @@
                 size: uniformBufferSize,
                 usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
             });
+            console.log('Uniform Buffer Size:', uniformBufferSize);
 
             const uniformBindGroup = device.createBindGroup({
                 layout: pipeline.getBindGroupLayout(0),

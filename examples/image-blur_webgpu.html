@@ -185,6 +185,8 @@
                 `../assets/cubemap/posz.jpg`,
                 document.baseURI
             ).href;
+            
+            console.log('Loaded Media:', img.src);
             await img.decode();
             const imageBitmap = await createImageBitmap(img);
 
@@ -352,7 +354,9 @@
             document.onmousemove = (event) => {
                 const amp = 100;
                 let newAmp = Math.floor((event.clientX/600) * amp)+1;
-                settings.filterSize = Math.min(newAmp, amp);
+                const value = Math.min(newAmp, amp);
+                settings.filterSize = value;
+                console.log('Blur:', value);
                 updateSettings();
             }
 

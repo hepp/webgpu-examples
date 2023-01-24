@@ -99,6 +99,7 @@
                 `../assets/Caravaggio_painting.jpg`,
                 document.baseURI
             ).href;
+            console.log('Loaded Media:', img.src);
             await img.decode();
             const imageBitmap = await createImageBitmap(img);
 

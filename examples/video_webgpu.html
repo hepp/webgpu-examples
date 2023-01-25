@@ -1,9 +1,21 @@
 <html>
 
+<style>
+    video::-webkit-media-controls-volume-slider {
+        display:none;
+    }
+    video::-webkit-media-controls-mute-button {
+        display:none;
+    }
+    video::-webkit-media-controls-fullscreen-button {
+        display: none;
+    }
+</style>
 <body>
-    <canvas id="container" width="400px" height="450px"></canvas>
-    <video id="video" width="300px" height="450px" loop autoplay muted></canvas>
-    
+<span><video id="video" width="220px" height="450px" loop autoplay muted controls disablePictureInPicture
+    controlslist="nopictureinpicture nofullscreen nodownload noplaybackrate"></canvas></span>
+<span><canvas id="container" width="470px" height="450px"></canvas></span>
+        
     <script id="shader-wgsl" type="x-shader-wgsl">
         @group(0) @binding(0) var mySampler : sampler;
         @group(0) @binding(1) var myTexture : texture_2d<f32>;
@@ -53,7 +65,7 @@
         @fragment
         fn main(@location(0) fragUV : vec2<f32>) -> @location(0) vec4<f32> {
             var vid = textureSampleBaseClampToEdge(myTexture, mySampler, fragUV);
-            vid.g = vid.g + .25; // add green
+            vid.g = vid.g + .2; // add green
             return vid;
         }
 
@@ -66,6 +78,9 @@
                 '../assets/sample_640x360.mp4',
                 document.baseURI
             ).href;
+            video.addEventListener('timeupdate', () => (
+                console.log(video.src + ':', video.currentTime + ' / ' + video.duration)
+            ));
             await video.play();
 
             const adapter = await navigator.gpu.requestAdapter();

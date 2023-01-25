@@ -340,6 +340,8 @@
                 filterSize: 20,
                 iterations: 2,
             };
+            console.log('Blur filterSize:', settings.filterSize);
+            console.log('Blur iterations:', settings.iterations);
 
             let blockDim;
             const updateSettings = () => {
@@ -356,7 +358,6 @@
                 let newAmp = Math.floor((event.clientX/600) * amp)+1;
                 const value = Math.min(newAmp, amp);
                 settings.filterSize = value;
-                console.log('Blur:', value);
                 updateSettings();
             }
 

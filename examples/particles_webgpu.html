@@ -73,6 +73,7 @@
     struct SimulationParams {
         deltaTime : f32,
         seed : vec4<f32>,
+        mouse : vec2<f32>,
     }
 
     struct Particle {
@@ -100,7 +101,7 @@
         var particle = data.particles[idx];
 
         // Apply gravity
-        particle.velocity.z = particle.velocity.z - sim_params.deltaTime * 0.5;
+        particle.velocity.z = particle.velocity.z - sim_params.deltaTime * (sim_params.mouse[0] * 1.5);
 
         // Basic velocity integration
         particle.position = particle.position + sim_params.deltaTime * particle.velocity;
@@ -135,8 +136,8 @@
             particle.position = vec3<f32>((uv - 0.5) * 4.5 * vec2<f32>(1.0, -1.0), 0.0);
             particle.color = textureLoad(texture, coord, 0);
             particle.velocity.x = (rand() - 0.5) * 0.1;
-            particle.velocity.y = (rand() - 0.5) * 0.1;
-            particle.velocity.z = rand() * 0.3;
+            particle.velocity.y = (rand() - 0.5) * (1.0-sim_params.mouse[1] * 2.0);
+            particle.velocity.z = rand() * (sim_params.mouse[1]);
             particle.lifetime = 0.5 + rand() * 2.0;
         }
 
@@ -213,6 +214,10 @@
                 3 * 4 + // velocity
                 1 * 4 + // padding
                 0;
+
+            console.log('Particle Count:', numParticles);
+            console.log('Particle Instance Byte Size:', particleInstanceByteSize);
+
 
             const adapter = await navigator.gpu.requestAdapter();
             const device = await adapter.requestDevice();
@@ -328,10 +333,14 @@
                 3 * 4 + // up : vec3<f32>
                 4 + // padding
                 0;
+
+                
+            console.log('Uniform Buffer Size:', uniformBufferSize);
             const uniformBuffer = device.createBuffer({
                 size: uniformBufferSize,
                 usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
             });
+
 
             const uniformBindGroup = device.createBindGroup({
                 layout: renderPipeline.getBindGroupLayout(0),
@@ -510,15 +519,23 @@
                 device.queue.submit([commandEncoder.finish()]);
             }
 
+            let mouse = {};
+            document.onmousemove = (event) => {
+                mouse.x = event.clientX/600;
+                mouse.y = event.clientY/400;
+            }
+
             const simulationParams = {
                 simulate: true,
                 deltaTime: 0.04,
+                mouse: 0,
             };
 
             const simulationUBOBufferSize =
                 1 * 4 + // deltaTime
                 3 * 4 + // padding
                 4 * 4 + // seed
+                4 * 4 + // mouse
                 0;
             const simulationUBOBuffer = device.createBuffer({
                 size: simulationUBOBufferSize,
@@ -575,6 +592,8 @@
                         Math.random() * 100, // seed.xy
                         1 + Math.random(),
                         1 + Math.random(), // seed.zw
+                        mouse.x,
+                        mouse.y,
                     ])
                 );
 

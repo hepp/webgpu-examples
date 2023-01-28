@@ -1,0 +1,146 @@
+<html>
+  <body>
+    <canvas id="container" width="700px" height="450px"></canvas>
+
+    <script id="shader-wgsl" type="x-shader-wgsl">
+      struct inputParams {
+          frameCount : f32
+      }
+      @binding(0) @group(0) var<uniform> params : inputParams;
+
+      struct VertexOutput {
+          @builtin(position) Position : vec4<f32>,
+          @location(0) fragUV : vec2<f32>,
+      }
+
+      @vertex
+      fn vertex_main(
+          @builtin(vertex_index) VertexIndex : u32
+      ) -> VertexOutput {
+        
+          var pos = array<vec2<f32>, 6>(
+              vec2( 1.0,  1.0), vec2( 1.0, -1.0), vec2(-1.0, -1.0),
+              vec2( 1.0,  1.0), vec2(-1.0, -1.0), vec2(-1.0,  1.0),
+          );
+
+          const uv = array(
+              vec2(1.0, 0.0), vec2(1.0, 1.0), vec2(0.0, 1.0),
+              vec2(1.0, 0.0), vec2(0.0, 1.0), vec2(0.0, 0.0),
+          );
+
+          var output : VertexOutput;
+          output.Position = vec4(pos[VertexIndex], 0.0, 1.0);
+          output.fragUV = uv[VertexIndex];
+          var foo = params.frameCount;
+          return output;
+      }
+
+      @fragment
+      fn fragment_main(
+          @location(0) fragUV : vec2<f32>
+      ) -> @location(0) vec4<f32> {
+          var time : f32 = params.frameCount * 0.01;
+          var rainbow : vec3<f32> = vec3(sin(time), sin(time + 2.0), sin(time + 4.0));
+          return vec4(rainbow * fragUV.y + fragUV.x, 1.0);
+      }
+    </script>
+    <script>
+      const init = async () => {
+        const adapter = await navigator.gpu.requestAdapter();
+        const device = await adapter.requestDevice();
+
+        const canvas = document.getElementById('container');
+        const context = canvas.getContext('webgpu');
+
+        const devicePixelRatio = window.devicePixelRatio || 1;
+        const presentationSize = [canvas.clientWidth * devicePixelRatio, canvas.clientHeight * devicePixelRatio];
+
+        const presentationFormat = navigator.gpu.getPreferredCanvasFormat();
+        context.configure({
+          device,
+          size: presentationSize,
+          format: presentationFormat,
+          alphaMode: 'opaque',
+        });
+
+        const shaderModule = device.createShaderModule({
+          code: document.getElementById('shader-wgsl').innerText,
+        });
+
+        const pipeline = device.createRenderPipeline({
+          layout: 'auto',
+          vertex: {
+            module: shaderModule,
+            entryPoint: 'vertex_main',
+          },
+          fragment: {
+            module: shaderModule,
+            entryPoint: 'fragment_main',
+            targets: [
+              {
+                format: presentationFormat,
+              },
+            ],
+          },
+          primitive: {
+            topology: 'triangle-list',
+          },
+        });
+
+        const input = device.createBuffer({
+          size: Float32Array.BYTES_PER_ELEMENT,
+          usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+        });
+
+        const uniformBindGroup = device.createBindGroup({
+          layout: pipeline.getBindGroupLayout(0),
+          entries: [
+            {
+              binding: 0,
+              resource: {
+                buffer: input,
+              },
+            },
+          ],
+        });
+
+        let t = 0;
+        function updateInputParams() {
+          device.queue.writeBuffer(input, 0, new Float32Array([t]));
+        }
+        updateInputParams();
+
+        function frame() {
+          const commandEncoder = device.createCommandEncoder();
+          const textureView = context.getCurrentTexture().createView();
+
+          const renderPassDescriptor = {
+            colorAttachments: [
+              {
+                view: textureView,
+                clearValue: { r: 0.0, g: 0.0, b: 0.0, a: 1.0 },
+                loadOp: 'clear',
+                storeOp: 'store',
+              },
+            ],
+          };
+
+          const passEncoder = commandEncoder.beginRenderPass(renderPassDescriptor);
+          passEncoder.setPipeline(pipeline);
+          passEncoder.setBindGroup(0, uniformBindGroup);
+          passEncoder.draw(6, 1, 0, 0);
+          passEncoder.end();
+
+          device.queue.submit([commandEncoder.finish()]);
+
+          t++;
+          updateInputParams();
+          requestAnimationFrame(frame);
+        }
+
+        requestAnimationFrame(frame);
+      };
+      init();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,453 @@
+<html>
+  <head>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/gl-matrix/2.8.1/gl-matrix-min.js"
+      integrity="sha512-zhHQR0/H5SEBL3Wn6yYSaTTZej12z0hVZKOv3TwCUXT1z5qeqGcXJLLrbERYRScEDDpYIJhPC1fk31gqR783iQ=="
+      crossorigin="anonymous"
+      defer
+    ></script>
+  </head>
+
+  <body>
+    <canvas id="container" width="700px" height="450px"></canvas>
+
+    <script id="shader-wgsl" type="x-shader-wgsl">
+
+      var<private> rand_seed : vec2<f32>;
+
+      fn rand() -> f32 {
+          rand_seed.x = fract(cos(dot(rand_seed, vec2<f32>(23.14077926, 232.61690225))) * 136.8168);
+          rand_seed.y = fract(cos(dot(rand_seed, vec2<f32>(54.47856553, 345.84153136))) * 534.7645);
+          return rand_seed.y;
+      }
+
+      struct RenderParams {
+          modelViewProjectionMatrix : mat4x4<f32>,
+          right : vec3<f32>,
+          up : vec3<f32>
+      }
+      @binding(0) @group(0) var<uniform> render_params : RenderParams;
+
+      struct VertexInput {
+          @location(0) position : vec3<f32>,
+          @location(1) color : vec4<f32>,
+          @location(2) quad_pos : vec2<f32>, // -1..+1
+      }
+
+      struct VertexOutput {
+          @builtin(position) position : vec4<f32>,
+          @location(0) color : vec4<f32>,
+          @location(1) quad_pos : vec2<f32>, // -1..+1
+      }
+
+      @vertex
+      fn vs_main(in : VertexInput) -> VertexOutput {
+          var quad_pos = mat2x3<f32>(render_params.right, render_params.up) * in.quad_pos;
+          var position = in.position + quad_pos * 0.01;
+          var out : VertexOutput;
+          out.position = render_params.modelViewProjectionMatrix * vec4<f32>(position, 1.0);
+          out.color = in.color;
+          out.quad_pos = in.quad_pos;
+          return out;
+      }
+
+      @fragment
+      fn fs_main(in : VertexOutput) -> @location(0) vec4<f32> {
+          var color = in.color;
+          // Apply a circular particle alpha mask
+          color.a = color.a * max(1.0 - length(in.quad_pos), 0.0) * .8;
+          return color;
+      }
+
+      struct SimulationParams {
+          deltaTime : f32,
+          seed : vec4<f32>,
+          mouse : vec2<f32>,
+          dist : f32,
+      }
+
+      struct Particle {
+          position : vec3<f32>,
+          lifetime : f32,
+          color    : vec4<f32>,
+          velocity : vec3<f32>,
+      }
+
+      struct Particles {
+          particles : array<Particle>,
+      }
+
+      @binding(0) @group(0) var<uniform> sim_params : SimulationParams;
+      @binding(1) @group(0) var<storage, read_write> data : Particles;
+
+      @compute @workgroup_size(64)
+      fn simulate(
+          @builtin(global_invocation_id) GlobalInvocationID : vec3<u32>
+      ) {
+          rand_seed = (sim_params.seed.xy + vec2<f32>(GlobalInvocationID.xy)) * sim_params.seed.zw;
+
+          let idx = GlobalInvocationID.x;
+          var particle = data.particles[idx];
+
+          particle.velocity.z = particle.velocity.z - sim_params.deltaTime + (rand() * (sim_params.dist * .8) + .04);
+          particle.velocity.y = particle.velocity.y + sim_params.deltaTime * rand() * .35;
+
+          particle.position = particle.position + sim_params.deltaTime * particle.velocity;
+
+          particle.lifetime = particle.lifetime - sim_params.deltaTime;
+          particle.color.a = smoothstep(0.0, 0.5, particle.lifetime);
+          particle.color = vec4(
+              ((sim_params.dist * .3) + rand() * .012) + .025
+                + (particle.lifetime * (rand() * .08)),
+              (sim_params.dist * .5) + rand() * .025,
+              sim_params.dist + .1,
+          1.0);
+
+          if (particle.lifetime < 0.0) {
+              var coord : vec2<i32>;
+
+              particle.position = vec3(
+                  ((sim_params.mouse.x * 2.0) - 1.0)*3.4,
+                  ((sim_params.mouse.y * 2.0) - 1.0)*2.2,
+                  1,
+              );
+
+              let angle = -atan2(particle.position.x, particle.position.y);
+
+              particle.velocity.x = (rand() - 0.5) * 1.0;
+              particle.velocity.y = (rand() - 0.5) * 1.0;
+              particle.velocity.z = rand() * .5;
+              particle.lifetime = 0.5 + rand() * 2.0;
+          }
+
+          data.particles[idx] = particle;
+      }
+    </script>
+    <script>
+      const init = async () => {
+        const numParticles = 1000000;
+        const particlePositionOffset = 0;
+        const particleColorOffset = 4 * 4;
+        const particleInstanceByteSize =
+          3 * 4 + // position
+          1 * 4 + // lifetime
+          4 * 4 + // color
+          3 * 4 + // velocity
+          1 * 4 + // padding
+          0;
+
+        console.log('Particle Count:', numParticles);
+        console.log('Particle Instance Byte Size:', particleInstanceByteSize);
+
+        const adapter = await navigator.gpu.requestAdapter();
+        const device = await adapter.requestDevice();
+
+        const canvas = document.getElementById('container');
+        const context = canvas.getContext('webgpu');
+
+        const devicePixelRatio = window.devicePixelRatio || 1;
+        const presentationSize = [canvas.clientWidth * devicePixelRatio, canvas.clientHeight * devicePixelRatio];
+        const presentationFormat = navigator.gpu.getPreferredCanvasFormat();
+
+        context.configure({
+          device,
+          size: presentationSize,
+          format: presentationFormat,
+          alphaMode: 'opaque',
+        });
+
+        const particlesBuffer = device.createBuffer({
+          size: numParticles * particleInstanceByteSize,
+          usage: GPUBufferUsage.VERTEX | GPUBufferUsage.STORAGE,
+        });
+
+        const particleModule = device.createShaderModule({
+          code: document.getElementById('shader-wgsl').innerText,
+        });
+
+        const renderPipeline = device.createRenderPipeline({
+          layout: 'auto',
+          vertex: {
+            module: particleModule,
+            entryPoint: 'vs_main',
+            buffers: [
+              {
+                arrayStride: particleInstanceByteSize,
+                stepMode: 'instance',
+                attributes: [
+                  {
+                    shaderLocation: 0,
+                    offset: particlePositionOffset,
+                    format: 'float32x3',
+                  },
+                  {
+                    shaderLocation: 1,
+                    offset: particleColorOffset,
+                    format: 'float32x4',
+                  },
+                ],
+              },
+              {
+                arrayStride: 2 * 4, // vec2<f32>
+                stepMode: 'vertex',
+                attributes: [
+                  {
+                    shaderLocation: 2,
+                    offset: 0,
+                    format: 'float32x2',
+                  },
+                ],
+              },
+            ],
+          },
+          fragment: {
+            module: particleModule,
+            entryPoint: 'fs_main',
+            targets: [
+              {
+                format: presentationFormat,
+                blend: {
+                  color: {
+                    srcFactor: 'src-alpha',
+                    dstFactor: 'one',
+                    operation: 'add',
+                  },
+                  alpha: {
+                    srcFactor: 'zero',
+                    dstFactor: 'one',
+                    operation: 'add',
+                  },
+                },
+              },
+            ],
+          },
+          primitive: {
+            topology: 'triangle-list',
+          },
+
+          depthStencil: {
+            depthWriteEnabled: false,
+            depthCompare: 'less',
+            format: 'depth24plus',
+          },
+        });
+
+        const depthTexture = device.createTexture({
+          size: presentationSize,
+          format: 'depth24plus',
+          usage: GPUTextureUsage.RENDER_ATTACHMENT,
+        });
+
+        const uniformBufferSize =
+          4 * 4 * 4 + // modelViewProjectionMatrix : mat4x4<f32>
+          3 * 4 + // right : vec3<f32>
+          4 + // padding
+          3 * 4 + // up : vec3<f32>
+          4 + // padding
+          0;
+
+        console.log('Uniform Buffer Size:', uniformBufferSize);
+
+        const uniformBuffer = device.createBuffer({
+          size: uniformBufferSize,
+          usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+        });
+
+        const uniformBindGroup = device.createBindGroup({
+          layout: renderPipeline.getBindGroupLayout(0),
+          entries: [
+            {
+              binding: 0,
+              resource: {
+                buffer: uniformBuffer,
+              },
+            },
+          ],
+        });
+
+        const renderPassDescriptor = {
+          colorAttachments: [
+            {
+              view: undefined, // Assigned later
+              clearValue: { r: 0.0, g: 0.0, b: 0.0, a: 1.0 },
+              loadOp: 'clear',
+              storeOp: 'store',
+            },
+          ],
+          depthStencilAttachment: {
+            view: depthTexture.createView(),
+
+            depthClearValue: 1.0,
+            depthLoadOp: 'clear',
+            depthStoreOp: 'store',
+          },
+        };
+
+        const quadVertexBuffer = device.createBuffer({
+          size: 6 * 2 * 4, // 6x vec2<f32>
+          usage: GPUBufferUsage.VERTEX,
+          mappedAtCreation: true,
+        });
+
+        const vertexData = [-1.0, -1.0, +1.0, -1.0, -1.0, +1.0, -1.0, +1.0, +1.0, -1.0, +1.0, +1.0];
+        new Float32Array(quadVertexBuffer.getMappedRange()).set(vertexData);
+        quadVertexBuffer.unmap();
+
+        let amp = 0;
+        let dist = 0;
+        let mouse = { x: 0.5, y: 0.5 };
+        let mouseDown = false;
+
+        document.onmouseup = (event) => {
+          mouseDown = false;
+        };
+
+        document.onmousedown = (event) => {
+          mouseDown = true;
+          amp += 0.65;
+        };
+
+        document.onmousemove = (event) => {
+          const newX = event.clientX / 700;
+          const newY = event.clientY / 450;
+
+          const deltaX = mouse.x - newX;
+          const deltaY = mouse.y - newY;
+          dist = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+
+          let warp = 0;
+          let zForce = 0.2;
+          if (mouseDown) {
+            zForce = 1.3;
+            if (dist > 0.005) {
+              warp = dist * 500;
+            }
+          }
+          amp += dist * (zForce - warp);
+
+          mouse.x = newX;
+          mouse.y = newY;
+        };
+
+        const simulationParams = {
+          simulate: true,
+          deltaTime: 0.04,
+        };
+
+        const simulationUBOBufferSize =
+          1 * 4 + // deltaTime
+          3 * 4 + // padding
+          4 * 4 + // seed
+          4 * 4 + // mouse
+          0;
+        const simulationUBOBuffer = device.createBuffer({
+          size: simulationUBOBufferSize,
+          usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+        });
+
+        const computePipeline = device.createComputePipeline({
+          layout: 'auto',
+          compute: {
+            module: particleModule,
+            entryPoint: 'simulate',
+          },
+        });
+        const computeBindGroup = device.createBindGroup({
+          layout: computePipeline.getBindGroupLayout(0),
+          entries: [
+            {
+              binding: 0,
+              resource: {
+                buffer: simulationUBOBuffer,
+              },
+            },
+            {
+              binding: 1,
+              resource: {
+                buffer: particlesBuffer,
+                offset: 0,
+                size: numParticles * particleInstanceByteSize,
+              },
+            },
+          ],
+        });
+
+        const aspect = presentationSize[0] / presentationSize[1];
+        const projection = mat4.create();
+        const view = mat4.create();
+        const mvp = mat4.create();
+        mat4.perspective(projection, (2 * Math.PI) / 5, aspect, 1, 100.0);
+
+        function frame() {
+          device.queue.writeBuffer(
+            simulationUBOBuffer,
+            0,
+            new Float32Array([
+              simulationParams.simulate ? simulationParams.deltaTime : 0.0,
+              0.0,
+              0.0,
+              0.0, // padding
+              Math.random() * 100,
+              Math.random() * 100, // seed.xy
+              1 + Math.random(),
+              1 + Math.random(), // seed.zw
+              mouse.x,
+              mouse.y,
+              amp,
+            ])
+          );
+
+          mat4.identity(view);
+          mat4.translate(view, view, vec3.fromValues(0, 0, -2));
+          mat4.rotateX(view, view, Math.PI);
+          mat4.multiply(mvp, projection, view);
+
+          device.queue.writeBuffer(
+            uniformBuffer,
+            0,
+            new Float32Array([
+              // modelViewProjectionMatrix
+              mvp[0], mvp[1], mvp[2], mvp[3],
+              mvp[4], mvp[5], mvp[6], mvp[7],
+              mvp[8], mvp[9], mvp[10], mvp[11],
+              mvp[12], mvp[13], mvp[14], mvp[15],
+              view[0], view[4], view[8], // right
+              0, // padding
+              view[1], view[5], view[9], // up
+              0, // padding
+            ])
+          );
+          const swapChainTexture = context.getCurrentTexture();
+
+          renderPassDescriptor.colorAttachments[0].view = swapChainTexture.createView();
+
+          const commandEncoder = device.createCommandEncoder();
+          {
+            const passEncoder = commandEncoder.beginComputePass();
+            passEncoder.setPipeline(computePipeline);
+            passEncoder.setBindGroup(0, computeBindGroup);
+            passEncoder.dispatchWorkgroups(Math.ceil(numParticles / 64));
+            passEncoder.end();
+          }
+          {
+            const passEncoder = commandEncoder.beginRenderPass(renderPassDescriptor);
+            passEncoder.setPipeline(renderPipeline);
+            passEncoder.setBindGroup(0, uniformBindGroup);
+            passEncoder.setVertexBuffer(0, particlesBuffer);
+            passEncoder.setVertexBuffer(1, quadVertexBuffer);
+            passEncoder.draw(6, numParticles, 0, 0);
+            passEncoder.end();
+          }
+
+          device.queue.submit([commandEncoder.finish()]);
+
+          amp = Math.max(0.0022, amp * 0.94);
+
+          requestAnimationFrame(frame);
+        }
+        requestAnimationFrame(frame);
+      };
+      init();
+    </script>
+  </body>
+</html>

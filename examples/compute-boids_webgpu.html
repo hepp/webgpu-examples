@@ -267,9 +267,9 @@
         updateSimParams();
 
         document.onmousemove = (event) => {
-          const amp = 0.5;
+          const amp = 0.25;
           let newAmp = (event.clientX / 700) * amp;
-          simParams.deltaT = Math.min(newAmp, amp);
+          simParams.deltaT = Math.min(newAmp + .01, amp);
 
           const amp2 = 0.6;
           let newAmp2 = (event.clientY / 450) * amp2 + 0.2;

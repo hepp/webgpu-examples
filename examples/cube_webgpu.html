@@ -52,7 +52,10 @@
         const context = canvas.getContext('webgpu');
 
         const devicePixelRatio = window.devicePixelRatio || 1;
-        const presentationSize = [canvas.clientWidth * devicePixelRatio, canvas.clientHeight * devicePixelRatio];
+        const presentationSize = [
+          canvas.clientWidth * devicePixelRatio,
+          canvas.clientHeight * devicePixelRatio,
+        ];
 
         const presentationFormat = navigator.gpu.getPreferredCanvasFormat();
         context.configure({
@@ -226,10 +229,19 @@
           mat4.translate(viewMatrix, viewMatrix, vec3.fromValues(0, 0, -4));
 
           const now = Date.now() / 1000;
-          mat4.rotate(viewMatrix, viewMatrix, 1, vec3.fromValues(Math.sin(now), Math.cos(now), 0));
+          mat4.rotate(
+            viewMatrix,
+            viewMatrix,
+            1,
+            vec3.fromValues(Math.sin(now), Math.cos(now), 0)
+          );
 
           const modelViewProjectionMatrix = mat4.create();
-          mat4.multiply(modelViewProjectionMatrix, projectionMatrix, viewMatrix);
+          mat4.multiply(
+            modelViewProjectionMatrix,
+            projectionMatrix,
+            viewMatrix
+          );
 
           return modelViewProjectionMatrix;
         }
@@ -243,10 +255,13 @@
             transformationMatrix.byteOffset,
             transformationMatrix.byteLength
           );
-          renderPassDescriptor.colorAttachments[0].view = context.getCurrentTexture().createView();
+          renderPassDescriptor.colorAttachments[0].view = context
+            .getCurrentTexture()
+            .createView();
 
           const commandEncoder = device.createCommandEncoder();
-          const passEncoder = commandEncoder.beginRenderPass(renderPassDescriptor);
+          const passEncoder =
+            commandEncoder.beginRenderPass(renderPassDescriptor);
 
           passEncoder.setPipeline(pipeline);
           passEncoder.setBindGroup(0, uniformBindGroup);

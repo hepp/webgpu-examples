@@ -55,7 +55,10 @@
         const context = canvas.getContext('webgpu');
 
         const devicePixelRatio = window.devicePixelRatio || 1;
-        const presentationSize = [canvas.clientWidth * devicePixelRatio, canvas.clientHeight * devicePixelRatio];
+        const presentationSize = [
+          canvas.clientWidth * devicePixelRatio,
+          canvas.clientHeight * devicePixelRatio,
+        ];
 
         const presentationFormat = navigator.gpu.getPreferredCanvasFormat();
         context.configure({
@@ -70,7 +73,7 @@
         const cubeColorOffset = 4 * 4;
         const cubeUVOffset = 4 * 8;
         const cubeVertexCount = 36;
-        
+
         const cubeVertexArray = new Float32Array([
             1, -1, 1, 1,   1, 0, 1, 1,  1, 1,
             -1, -1, 1, 1,  0, 0, 1, 1,  0, 1,
@@ -197,12 +200,16 @@
           cubeTexture = device.createTexture({
             size: [imageBitmap.width, imageBitmap.height, 1],
             format: 'rgba8unorm',
-            usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST | GPUTextureUsage.RENDER_ATTACHMENT,
+            usage:
+              GPUTextureUsage.TEXTURE_BINDING |
+              GPUTextureUsage.COPY_DST |
+              GPUTextureUsage.RENDER_ATTACHMENT,
           });
-          device.queue.copyExternalImageToTexture({ source: imageBitmap }, { texture: cubeTexture }, [
-            imageBitmap.width,
-            imageBitmap.height,
-          ]);
+          device.queue.copyExternalImageToTexture(
+            { source: imageBitmap },
+            { texture: cubeTexture },
+            [imageBitmap.width, imageBitmap.height]
+          );
         }
 
         // Create a sampler with linear filtering for smooth interpolation.
@@ -258,10 +265,19 @@
           const viewMatrix = mat4.create();
           mat4.translate(viewMatrix, viewMatrix, vec3.fromValues(0, 0, -4));
           const now = Date.now() / 1000;
-          mat4.rotate(viewMatrix, viewMatrix, ts, vec3.fromValues(Math.sin(now) * 2, Math.cos(now), 0));
+          mat4.rotate(
+            viewMatrix,
+            viewMatrix,
+            ts,
+            vec3.fromValues(Math.sin(now) * 2, Math.cos(now), 0)
+          );
 
           const modelViewProjectionMatrix = mat4.create();
-          mat4.multiply(modelViewProjectionMatrix, projectionMatrix, viewMatrix);
+          mat4.multiply(
+            modelViewProjectionMatrix,
+            projectionMatrix,
+            viewMatrix
+          );
 
           return modelViewProjectionMatrix;
         }
@@ -276,10 +292,13 @@
             transformationMatrix.byteOffset,
             transformationMatrix.byteLength
           );
-          renderPassDescriptor.colorAttachments[0].view = context.getCurrentTexture().createView();
+          renderPassDescriptor.colorAttachments[0].view = context
+            .getCurrentTexture()
+            .createView();
 
           const commandEncoder = device.createCommandEncoder();
-          const passEncoder = commandEncoder.beginRenderPass(renderPassDescriptor);
+          const passEncoder =
+            commandEncoder.beginRenderPass(renderPassDescriptor);
           passEncoder.setPipeline(pipeline);
           passEncoder.setBindGroup(0, uniformBindGroup);
           passEncoder.setVertexBuffer(0, verticesBuffer);

@@ -224,7 +224,10 @@
         const context = canvas.getContext('webgpu');
 
         const devicePixelRatio = window.devicePixelRatio || 1;
-        const presentationSize = [canvas.clientWidth * devicePixelRatio, canvas.clientHeight * devicePixelRatio];
+        const presentationSize = [
+          canvas.clientWidth * devicePixelRatio,
+          canvas.clientHeight * devicePixelRatio,
+        ];
         const presentationFormat = navigator.gpu.getPreferredCanvasFormat();
 
         context.configure({
@@ -388,7 +391,10 @@
           const imageBitmap = await createImageBitmap(img);
 
           // Calculate number of mip levels required to generate the probability map
-          while (textureWidth < imageBitmap.width || textureHeight < imageBitmap.height) {
+          while (
+            textureWidth < imageBitmap.width ||
+            textureHeight < imageBitmap.height
+          ) {
             textureWidth *= 2;
             textureHeight *= 2;
             numMipLevels++;
@@ -403,10 +409,11 @@
               GPUTextureUsage.COPY_DST |
               GPUTextureUsage.RENDER_ATTACHMENT,
           });
-          device.queue.copyExternalImageToTexture({ source: imageBitmap }, { texture: texture }, [
-            imageBitmap.width,
-            imageBitmap.height,
-          ]);
+          device.queue.copyExternalImageToTexture(
+            { source: imageBitmap },
+            { texture: texture },
+            [imageBitmap.width, imageBitmap.height]
+          );
         }
 
         const probabilityMapModule = device.createShaderModule({
@@ -414,20 +421,22 @@
         });
 
         {
-          const probabilityMapImportLevelPipeline = device.createComputePipeline({
-            layout: 'auto',
-            compute: {
-              module: probabilityMapModule,
-              entryPoint: 'import_level',
-            },
-          });
-          const probabilityMapExportLevelPipeline = device.createComputePipeline({
-            layout: 'auto',
-            compute: {
-              module: probabilityMapModule,
-              entryPoint: 'export_level',
-            },
-          });
+          const probabilityMapImportLevelPipeline =
+            device.createComputePipeline({
+              layout: 'auto',
+              compute: {
+                module: probabilityMapModule,
+                entryPoint: 'import_level',
+              },
+            });
+          const probabilityMapExportLevelPipeline =
+            device.createComputePipeline({
+              layout: 'auto',
+              compute: {
+                module: probabilityMapModule,
+                entryPoint: 'export_level',
+              },
+            });
 
           const probabilityMapUBOBufferSize =
             1 * 4 + // stride
@@ -445,7 +454,11 @@
             size: textureWidth * textureHeight * 4,
             usage: GPUBufferUsage.STORAGE,
           });
-          device.queue.writeBuffer(probabilityMapUBOBuffer, 0, new Int32Array([textureWidth]));
+          device.queue.writeBuffer(
+            probabilityMapUBOBuffer,
+            0,
+            new Int32Array([textureWidth])
+          );
           const commandEncoder = device.createCommandEncoder();
           for (let level = 0; level < numMipLevels; level++) {
             const levelWidth = textureWidth >> level;
@@ -488,13 +501,19 @@
               const passEncoder = commandEncoder.beginComputePass();
               passEncoder.setPipeline(probabilityMapImportLevelPipeline);
               passEncoder.setBindGroup(0, probabilityMapBindGroup);
-              passEncoder.dispatchWorkgroups(Math.ceil(levelWidth / 64), levelHeight);
+              passEncoder.dispatchWorkgroups(
+                Math.ceil(levelWidth / 64),
+                levelHeight
+              );
               passEncoder.end();
             } else {
               const passEncoder = commandEncoder.beginComputePass();
               passEncoder.setPipeline(probabilityMapExportLevelPipeline);
               passEncoder.setBindGroup(0, probabilityMapBindGroup);
-              passEncoder.dispatchWorkgroups(Math.ceil(levelWidth / 64), levelHeight);
+              passEncoder.dispatchWorkgroups(
+                Math.ceil(levelWidth / 64),
+                levelHeight
+              );
               passEncoder.end();
             }
           }
@@ -583,25 +602,25 @@
           mat4.rotateX(view, view, Math.PI * -0.2);
           mat4.multiply(mvp, projection, view);
 
-          // prettier-ignore
           device.queue.writeBuffer(
-                    uniformBuffer,
-                    0,
-                    new Float32Array([
-                        // modelViewProjectionMatrix
-                        mvp[0], mvp[1], mvp[2], mvp[3],
-                        mvp[4], mvp[5], mvp[6], mvp[7],
-                        mvp[8], mvp[9], mvp[10], mvp[11],
-                        mvp[12], mvp[13], mvp[14], mvp[15],
-                        view[0], view[4], view[8], // right
-                        0, // padding
-                        view[1], view[5], view[9], // up
-                        0, // padding
-                    ])
-                );
+              uniformBuffer,
+              0,
+              new Float32Array([
+                  // modelViewProjectionMatrix
+                  mvp[0], mvp[1], mvp[2], mvp[3],
+                  mvp[4], mvp[5], mvp[6], mvp[7],
+                  mvp[8], mvp[9], mvp[10], mvp[11],
+                  mvp[12], mvp[13], mvp[14], mvp[15],
+                  view[0], view[4], view[8], // right
+                  0, // padding
+                  view[1], view[5], view[9], // up
+                  0, // padding
+              ])
+          );
           const swapChainTexture = context.getCurrentTexture();
 
-          renderPassDescriptor.colorAttachments[0].view = swapChainTexture.createView();
+          renderPassDescriptor.colorAttachments[0].view =
+            swapChainTexture.createView();
 
           const commandEncoder = device.createCommandEncoder();
           {
@@ -612,7 +631,8 @@
             passEncoder.end();
           }
           {
-            const passEncoder = commandEncoder.beginRenderPass(renderPassDescriptor);
+            const passEncoder =
+              commandEncoder.beginRenderPass(renderPassDescriptor);
             passEncoder.setPipeline(renderPipeline);
             passEncoder.setBindGroup(0, uniformBindGroup);
             passEncoder.setVertexBuffer(0, particlesBuffer);

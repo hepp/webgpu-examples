@@ -62,6 +62,7 @@
       @binding(2) @group(0) var<storage, read_write> particlesB : Particles;
 
       // https://github.com/austinEng/Project6-Vulkan-Flocking/blob/master/data/shaders/computeparticles/particle.comp
+      
       @compute @workgroup_size(64)
 
       fn main(@builtin(global_invocation_id) GlobalInvocationID : vec3<u32>) {
@@ -101,7 +102,9 @@
           if (cVelCount > 0) {
               cVel /= f32(cVelCount);
           }
-          vVel += (cMass * params.rule1Scale) + (colVel * params.rule2Scale) + (cVel * params.rule3Scale);
+          vVel += (cMass * params.rule1Scale) +
+            (colVel * params.rule2Scale) +
+            (cVel * params.rule3Scale);
           vVel = normalize(vVel) * clamp(length(vVel), 0.0, 0.1);
           vPos = vPos + (vVel * params.deltaT);
 
@@ -146,7 +149,10 @@
         const context = canvas.getContext('webgpu');
 
         const devicePixelRatio = window.devicePixelRatio || 1;
-        const presentationSize = [canvas.clientWidth * devicePixelRatio, canvas.clientHeight * devicePixelRatio];
+        const presentationSize = [
+          canvas.clientWidth * devicePixelRatio,
+          canvas.clientHeight * devicePixelRatio,
+        ];
 
         const presentationFormat = navigator.gpu.getPreferredCanvasFormat();
         context.configure({
@@ -232,14 +238,18 @@
           ],
         };
 
-        const vertexBufferData = new Float32Array([-0.01, -0.02, 0.01, -0.02, 0.0, 0.02]);
+        const vertexBufferData = new Float32Array([
+          -0.01, -0.02, 0.01, -0.02, 0.0, 0.02,
+        ]);
 
         const spriteVertexBuffer = device.createBuffer({
           size: vertexBufferData.byteLength,
           usage: GPUBufferUsage.VERTEX,
           mappedAtCreation: true,
         });
-        new Float32Array(spriteVertexBuffer.getMappedRange()).set(vertexBufferData);
+        new Float32Array(spriteVertexBuffer.getMappedRange()).set(
+          vertexBufferData
+        );
         spriteVertexBuffer.unmap();
 
         const simParamBufferSize = 7 * Float32Array.BYTES_PER_ELEMENT;
@@ -269,7 +279,7 @@
         document.onmousemove = (event) => {
           const amp = 0.25;
           let newAmp = (event.clientX / 700) * amp;
-          simParams.deltaT = Math.min(newAmp + .01, amp);
+          simParams.deltaT = Math.min(newAmp + 0.01, amp);
 
           const amp2 = 0.6;
           let newAmp2 = (event.clientY / 450) * amp2 + 0.2;
@@ -295,7 +305,9 @@
             usage: GPUBufferUsage.VERTEX | GPUBufferUsage.STORAGE,
             mappedAtCreation: true,
           });
-          new Float32Array(particleBuffers[i].getMappedRange()).set(initialParticleData);
+          new Float32Array(particleBuffers[i].getMappedRange()).set(
+            initialParticleData
+          );
           particleBuffers[i].unmap();
         }
 
@@ -332,7 +344,9 @@
 
         let t = 0;
         function frame() {
-          renderPassDescriptor.colorAttachments[0].view = context.getCurrentTexture().createView();
+          renderPassDescriptor.colorAttachments[0].view = context
+            .getCurrentTexture()
+            .createView();
 
           const commandEncoder = device.createCommandEncoder();
           {
@@ -343,7 +357,8 @@
             passEncoder.end();
           }
           {
-            const passEncoder = commandEncoder.beginRenderPass(renderPassDescriptor);
+            const passEncoder =
+              commandEncoder.beginRenderPass(renderPassDescriptor);
             passEncoder.setPipeline(renderPipeline);
             passEncoder.setVertexBuffer(0, particleBuffers[(t + 1) % 2]);
             passEncoder.setVertexBuffer(1, spriteVertexBuffer);

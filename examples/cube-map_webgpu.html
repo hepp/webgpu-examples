@@ -57,7 +57,10 @@
         const context = canvas.getContext('webgpu');
 
         const devicePixelRatio = window.devicePixelRatio || 1;
-        const presentationSize = [canvas.clientWidth * devicePixelRatio, canvas.clientHeight * devicePixelRatio];
+        const presentationSize = [
+          canvas.clientWidth * devicePixelRatio,
+          canvas.clientHeight * devicePixelRatio,
+        ];
 
         const presentationFormat = navigator.gpu.getPreferredCanvasFormat();
         context.configure({
@@ -202,11 +205,12 @@
 
           cubemapTexture = device.createTexture({
             dimension: '2d',
-            // Create a 2d array texture.
-            // Assume each image has the same size.
             size: [imageBitmaps[0].width, imageBitmaps[0].height, 6],
             format: 'rgba8unorm',
-            usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST | GPUTextureUsage.RENDER_ATTACHMENT,
+            usage:
+              GPUTextureUsage.TEXTURE_BINDING |
+              GPUTextureUsage.COPY_DST |
+              GPUTextureUsage.RENDER_ATTACHMENT,
           });
 
           for (let i = 0; i < imageBitmaps.length; i++) {
@@ -283,16 +287,23 @@
 
         const tmpMat4 = mat4.create();
 
-        // Comppute camera movement:
-        // It rotates around Y axis with a slight pitch movement.
         function updateTransformationMatrix() {
           const now = Date.now() / 800;
 
-          mat4.rotate(tmpMat4, viewMatrix, (Math.PI / 10) * Math.sin(now), vec3.fromValues(1, 0, 0));
+          mat4.rotate(
+            tmpMat4,
+            viewMatrix,
+            (Math.PI / 10) * Math.sin(now),
+            vec3.fromValues(1, 0, 0)
+          );
           mat4.rotate(tmpMat4, tmpMat4, now * 0.2, vec3.fromValues(0, 1, 0));
 
           mat4.multiply(modelViewProjectionMatrix, tmpMat4, modelMatrix);
-          mat4.multiply(modelViewProjectionMatrix, projectionMatrix, modelViewProjectionMatrix);
+          mat4.multiply(
+            modelViewProjectionMatrix,
+            projectionMatrix,
+            modelViewProjectionMatrix
+          );
         }
 
         function frame() {
@@ -305,7 +316,9 @@
             modelViewProjectionMatrix.byteLength
           );
 
-          renderPassDescriptor.colorAttachments[0].view = context.getCurrentTexture().createView();
+          renderPassDescriptor.colorAttachments[0].view = context
+            .getCurrentTexture()
+            .createView();
 
           const commandEncoder = device.createCommandEncoder();
           const passEncoder = commandEncoder.beginRenderPass(renderPassDescriptor);

@@ -58,7 +58,10 @@
         const context = canvas.getContext('webgpu');
 
         const devicePixelRatio = window.devicePixelRatio || 1;
-        const presentationSize = [canvas.clientWidth * devicePixelRatio, canvas.clientHeight * devicePixelRatio];
+        const presentationSize = [
+          canvas.clientWidth * devicePixelRatio,
+          canvas.clientHeight * devicePixelRatio,
+        ];
 
         const presentationFormat = navigator.gpu.getPreferredCanvasFormat();
         context.configure({
@@ -75,7 +78,6 @@
         const cubeUVOffset = 4 * 8;
         const cubeVertexCount = 36;
 
-        
         const cubeVertexArray = new Float32Array([
             1, -1, 1, 1,   1, 0, 1, 1,  1, 1,
             -1, -1, 1, 1,  0, 0, 1, 1,  0, 1,
@@ -190,15 +192,12 @@
         });
         console.log('Uniform Buffer Size:', uniformBufferSize);
 
-        // We will copy the frame's rendering results into this texture and
-        // sample it on the next frame.
         const cubeTexture = device.createTexture({
           size: presentationSize,
           format: presentationFormat,
           usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST,
         });
 
-        // Create a sampler with linear filtering for smooth interpolation.
         const sampler = device.createSampler({
           magFilter: 'linear',
           minFilter: 'linear',
@@ -228,7 +227,6 @@
           colorAttachments: [
             {
               view: undefined, // Assigned later
-
               clearValue: { r: 0.5, g: 0.5, b: 0.5, a: 1.0 },
               loadOp: 'clear',
               storeOp: 'store',
@@ -251,10 +249,19 @@
           const viewMatrix = mat4.create();
           mat4.translate(viewMatrix, viewMatrix, vec3.fromValues(0, 0, -4));
           const now = Date.now() / 1000;
-          mat4.rotate(viewMatrix, viewMatrix, 1, vec3.fromValues(Math.sin(now), Math.cos(now), 0));
+          mat4.rotate(
+            viewMatrix,
+            viewMatrix,
+            1,
+            vec3.fromValues(Math.sin(now), Math.cos(now), 0)
+          );
 
           const modelViewProjectionMatrix = mat4.create();
-          mat4.multiply(modelViewProjectionMatrix, projectionMatrix, viewMatrix);
+          mat4.multiply(
+            modelViewProjectionMatrix,
+            projectionMatrix,
+            viewMatrix
+          );
 
           return modelViewProjectionMatrix;
         }
@@ -270,7 +277,8 @@
           );
 
           const swapChainTexture = context.getCurrentTexture();
-          renderPassDescriptor.colorAttachments[0].view = swapChainTexture.createView();
+          renderPassDescriptor.colorAttachments[0].view =
+            swapChainTexture.createView();
 
           const commandEncoder = device.createCommandEncoder();
           const passEncoder = commandEncoder.beginRenderPass(renderPassDescriptor);
@@ -279,8 +287,7 @@
           passEncoder.setVertexBuffer(0, verticesBuffer);
           passEncoder.draw(cubeVertexCount, 1, 0, 0);
           passEncoder.end();
-
-          // Copy the rendering results from the swapchain into |cubeTexture|.
+          
           commandEncoder.copyTextureToTexture(
             {
               texture: swapChainTexture,

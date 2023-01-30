@@ -19,7 +19,7 @@
       fn vertex_main(
           @builtin(vertex_index) VertexIndex : u32
       ) -> VertexOutput {
-          
+
           var pos = array<vec2<f32>, 6>(
               vec2( 1.0,  1.0), vec2( 1.0, -1.0), vec2(-1.0, -1.0),
               vec2( 1.0,  1.0), vec2(-1.0, -1.0), vec2(-1.0,  1.0),
@@ -78,7 +78,10 @@
         const context = canvas.getContext('webgpu');
 
         const devicePixelRatio = window.devicePixelRatio || 1;
-        const presentationSize = [canvas.clientWidth * devicePixelRatio, canvas.clientHeight * devicePixelRatio];
+        const presentationSize = [
+          canvas.clientWidth * devicePixelRatio,
+          canvas.clientHeight * devicePixelRatio,
+        ];
 
         const presentationFormat = navigator.gpu.getPreferredCanvasFormat();
         context.configure({
@@ -138,7 +141,11 @@
 
         let t = 0;
         function updateInputParams() {
-          device.queue.writeBuffer(input, 0, new Float32Array([t, mouse.x, mouse.y]));
+          device.queue.writeBuffer(
+            input,
+            0,
+            new Float32Array([t, mouse.x, mouse.y])
+          );
         }
         updateInputParams();
 
@@ -157,7 +164,8 @@
             ],
           };
 
-          const passEncoder = commandEncoder.beginRenderPass(renderPassDescriptor);
+          const passEncoder =
+            commandEncoder.beginRenderPass(renderPassDescriptor);
           passEncoder.setPipeline(pipeline);
           passEncoder.setBindGroup(0, uniformBindGroup);
           passEncoder.draw(6, 1, 0, 0);

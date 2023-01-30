@@ -1,6 +1,8 @@
 <html>
   <body>
-    <h2 style="text-align: center; color: white">Results of GPU matrix calculations shown in log:</h2>
+    <h2 style="text-align: center; color: white">
+      Results of GPU matrix calculations shown in log:
+    </h2>
 
     <script id="shader-wgsl" type="x-shader-wgsl">
       struct Matrix {
@@ -61,7 +63,7 @@
             5, 6,
             7, 8
         ]);
-        
+
         const gpuBufferSecondMatrix = device.createBuffer({
           mappedAtCreation: true,
           size: secondMatrix.byteLength,
@@ -72,7 +74,9 @@
         new Float32Array(arrayBufferSecondMatrix).set(secondMatrix);
         gpuBufferSecondMatrix.unmap();
 
-        const resultMatrixBufferSize = Float32Array.BYTES_PER_ELEMENT * (2 + firstMatrix[0] * secondMatrix[1]);
+        const resultMatrixBufferSize =
+          Float32Array.BYTES_PER_ELEMENT *
+          (2 + firstMatrix[0] * secondMatrix[1]);
         const resultMatrixBuffer = device.createBuffer({
           size: resultMatrixBufferSize,
           usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC,
@@ -145,14 +149,19 @@
         const arrayBuffer = gpuReadBuffer.getMappedRange();
         console.log('-> Matrix 1:', firstMatrix.toString());
         console.log('-> Matrix 2:', secondMatrix.toString());
-        console.log('-> Result Matrix:', new Float32Array(arrayBuffer).toString());
-        console.log('Learn more about this example: https://web.dev/gpu-compute/');
+        console.log(
+          '-> Result Matrix:',
+          new Float32Array(arrayBuffer).toString()
+        );
+        console.log(
+          'Learn more about this example: https://web.dev/gpu-compute/'
+        );
 
         function frame() {
           requestAnimationFrame(frame);
         }
 
-        // This example includes requestAnimationFrame to satisfy iframe error detection
+        // Include requestAnimationFrame to satisfy iframe error detection
         requestAnimationFrame(frame);
       };
       init();

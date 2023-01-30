@@ -30,7 +30,10 @@
         const context = canvas.getContext('webgpu');
 
         const devicePixelRatio = window.devicePixelRatio || 1;
-        const presentationSize = [canvas.clientWidth * devicePixelRatio, canvas.clientHeight * devicePixelRatio];
+        const presentationSize = [
+          canvas.clientWidth * devicePixelRatio,
+          canvas.clientHeight * devicePixelRatio,
+        ];
 
         const presentationFormat = navigator.gpu.getPreferredCanvasFormat();
         context.configure({
@@ -93,7 +96,8 @@
             ],
           };
 
-          const passEncoder = commandEncoder.beginRenderPass(renderPassDescriptor);
+          const passEncoder =
+            commandEncoder.beginRenderPass(renderPassDescriptor);
           passEncoder.setPipeline(pipeline);
           passEncoder.draw(3, 1, 0, 0);
           passEncoder.end();

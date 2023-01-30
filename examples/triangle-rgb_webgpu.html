@@ -37,7 +37,8 @@
         });
 
         const vertices = new Float32Array([
-          -1.0, -1.0, 0, 1, 1, 0, 0, 1, -0.0, 1.0, 0, 1, 0, 1, 0, 1, 1.0, -1.0, 0, 1, 0, 0, 1, 1,
+          -1.0, -1.0, 0, 1, 1, 0, 0, 1, -0.0, 1.0, 0, 1, 0, 1, 0, 1, 1.0, -1.0,
+          0, 1, 0, 0, 1, 1,
         ]);
 
         const vertexBuffer = device.createBuffer({
@@ -103,9 +104,12 @@
         };
 
         function frame() {
-          renderPassDescriptor.colorAttachments[0].view = context.getCurrentTexture().createView();
+          renderPassDescriptor.colorAttachments[0].view = context
+            .getCurrentTexture()
+            .createView();
           const commandEncoder = device.createCommandEncoder();
-          const passEncoder = commandEncoder.beginRenderPass(renderPassDescriptor);
+          const passEncoder =
+            commandEncoder.beginRenderPass(renderPassDescriptor);
           passEncoder.setPipeline(pipeline);
           passEncoder.setVertexBuffer(0, vertexBuffer);
           passEncoder.draw(3);

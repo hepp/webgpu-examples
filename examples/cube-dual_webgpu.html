@@ -52,7 +52,10 @@
         const context = canvas.getContext('webgpu');
 
         const devicePixelRatio = window.devicePixelRatio || 1;
-        const presentationSize = [canvas.clientWidth * devicePixelRatio, canvas.clientHeight * devicePixelRatio];
+        const presentationSize = [
+          canvas.clientWidth * devicePixelRatio,
+          canvas.clientHeight * devicePixelRatio,
+        ];
 
         const presentationFormat = navigator.gpu.getPreferredCanvasFormat();
         context.configure({
@@ -177,7 +180,7 @@
         });
 
         const matrixSize = 4 * 16; // 4x4 matrix
-        const offset = 256; // uniformBindGroup offset must be 256-byte aligned
+        const offset = 256; 
         const uniformBufferSize = offset + matrixSize;
         console.log('Uniform Buffer Size:', uniformBufferSize);
 
@@ -252,13 +255,31 @@
         function updateTransformationMatrix() {
           const now = Date.now() / 1000;
 
-          mat4.rotate(tmpMat41, modelMatrix1, 1, vec3.fromValues(Math.sin(now), Math.cos(now), 0));
-          mat4.rotate(tmpMat42, modelMatrix2, 1, vec3.fromValues(Math.cos(now), Math.sin(now), 0));
+          mat4.rotate(
+            tmpMat41,
+            modelMatrix1,
+            1,
+            vec3.fromValues(Math.sin(now), Math.cos(now), 0)
+          );
+          mat4.rotate(
+            tmpMat42,
+            modelMatrix2,
+            1,
+            vec3.fromValues(Math.cos(now), Math.sin(now), 0)
+          );
 
           mat4.multiply(modelViewProjectionMatrix1, viewMatrix, tmpMat41);
-          mat4.multiply(modelViewProjectionMatrix1, projectionMatrix, modelViewProjectionMatrix1);
+          mat4.multiply(
+            modelViewProjectionMatrix1,
+            projectionMatrix,
+            modelViewProjectionMatrix1
+          );
           mat4.multiply(modelViewProjectionMatrix2, viewMatrix, tmpMat42);
-          mat4.multiply(modelViewProjectionMatrix2, projectionMatrix, modelViewProjectionMatrix2);
+          mat4.multiply(
+            modelViewProjectionMatrix2,
+            projectionMatrix,
+            modelViewProjectionMatrix2
+          );
         }
 
         function frame() {
@@ -278,7 +299,9 @@
             modelViewProjectionMatrix2.byteLength
           );
 
-          renderPassDescriptor.colorAttachments[0].view = context.getCurrentTexture().createView();
+          renderPassDescriptor.colorAttachments[0].view = context
+            .getCurrentTexture()
+            .createView();
 
           const commandEncoder = device.createCommandEncoder();
           const passEncoder = commandEncoder.beginRenderPass(renderPassDescriptor);

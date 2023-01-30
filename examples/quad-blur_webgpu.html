@@ -15,7 +15,7 @@
       fn vertex_main(
           @builtin(vertex_index) VertexIndex : u32
       ) -> VertexOutput {
-        
+
           var pos = array<vec2<f32>, 6>(
               vec2( 1.0,  1.0), vec2( 1.0, -1.0), vec2(-1.0, -1.0),
               vec2( 1.0,  1.0), vec2(-1.0, -1.0), vec2(-1.0,  1.0),
@@ -115,7 +115,10 @@
         const context = canvas.getContext('webgpu');
 
         const devicePixelRatio = window.devicePixelRatio || 1;
-        const presentationSize = [canvas.clientWidth * devicePixelRatio, canvas.clientHeight * devicePixelRatio];
+        const presentationSize = [
+          canvas.clientWidth * devicePixelRatio,
+          canvas.clientHeight * devicePixelRatio,
+        ];
         const tileDim = 128;
         const batch = [4, 4];
 
@@ -179,12 +182,16 @@
         const quadTexture = device.createTexture({
           size: [srcWidth, srcHeight, 1],
           format: 'rgba8unorm',
-          usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST | GPUTextureUsage.RENDER_ATTACHMENT,
+          usage:
+            GPUTextureUsage.TEXTURE_BINDING |
+            GPUTextureUsage.COPY_DST |
+            GPUTextureUsage.RENDER_ATTACHMENT,
         });
-        device.queue.copyExternalImageToTexture({ source: imageBitmap }, { texture: quadTexture }, [
-          imageBitmap.width,
-          imageBitmap.height,
-        ]);
+        device.queue.copyExternalImageToTexture(
+          { source: imageBitmap },
+          { texture: quadTexture },
+          [imageBitmap.width, imageBitmap.height]
+        );
 
         const textures = [0, 1].map(() => {
           return device.createTexture({
@@ -193,7 +200,10 @@
               height: srcHeight,
             },
             format: 'rgba8unorm',
-            usage: GPUTextureUsage.COPY_DST | GPUTextureUsage.STORAGE_BINDING | GPUTextureUsage.TEXTURE_BINDING,
+            usage:
+              GPUTextureUsage.COPY_DST |
+              GPUTextureUsage.STORAGE_BINDING |
+              GPUTextureUsage.TEXTURE_BINDING,
           });
         });
 
@@ -324,7 +334,11 @@
         let blockDim;
         const updateSettings = () => {
           blockDim = tileDim - (settings.filterSize - 1);
-          device.queue.writeBuffer(blurParamsBuffer, 0, new Uint32Array([settings.filterSize, blockDim]));
+          device.queue.writeBuffer(
+            blurParamsBuffer,
+            0,
+            new Uint32Array([settings.filterSize, blockDim])
+          );
         };
 
         document.onmousemove = (event) => {
@@ -345,17 +359,29 @@
           computePass.setBindGroup(0, computeConstants);
 
           computePass.setBindGroup(1, computeBindGroup0);
-          computePass.dispatchWorkgroups(Math.ceil(srcWidth / blockDim), Math.ceil(srcHeight / batch[1]));
+          computePass.dispatchWorkgroups(
+            Math.ceil(srcWidth / blockDim),
+            Math.ceil(srcHeight / batch[1])
+          );
 
           computePass.setBindGroup(1, computeBindGroup1);
-          computePass.dispatchWorkgroups(Math.ceil(srcHeight / blockDim), Math.ceil(srcWidth / batch[1]));
+          computePass.dispatchWorkgroups(
+            Math.ceil(srcHeight / blockDim),
+            Math.ceil(srcWidth / batch[1])
+          );
 
           for (let i = 0; i < settings.iterations - 1; ++i) {
             computePass.setBindGroup(1, computeBindGroup2);
-            computePass.dispatchWorkgroups(Math.ceil(srcWidth / blockDim), Math.ceil(srcHeight / batch[1]));
+            computePass.dispatchWorkgroups(
+              Math.ceil(srcWidth / blockDim),
+              Math.ceil(srcHeight / batch[1])
+            );
 
             computePass.setBindGroup(1, computeBindGroup1);
-            computePass.dispatchWorkgroups(Math.ceil(srcHeight / blockDim), Math.ceil(srcWidth / batch[1]));
+            computePass.dispatchWorkgroups(
+              Math.ceil(srcHeight / blockDim),
+              Math.ceil(srcWidth / batch[1])
+            );
           }
 
           computePass.end();

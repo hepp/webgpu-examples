@@ -82,7 +82,10 @@
         const context = canvas.getContext('webgpu');
 
         const devicePixelRatio = window.devicePixelRatio || 1;
-        const presentationSize = [canvas.clientWidth * devicePixelRatio, canvas.clientHeight * devicePixelRatio];
+        const presentationSize = [
+          canvas.clientWidth * devicePixelRatio,
+          canvas.clientHeight * devicePixelRatio,
+        ];
         const presentationFormat = navigator.gpu.getPreferredCanvasFormat();
 
         context.configure({
@@ -116,7 +119,9 @@
           usage: GPUBufferUsage.VERTEX,
           mappedAtCreation: true,
         });
-        new Float32Array(coordBuffer.getMappedRange()).set(teapotTextureCoordsArray);
+        new Float32Array(coordBuffer.getMappedRange()).set(
+          teapotTextureCoordsArray
+        );
         coordBuffer.unmap();
 
         teapotIndicesArray = new Uint32Array(teapot.indices);
@@ -216,13 +221,16 @@
         const modelTexture = device.createTexture({
           size: [imageBitmap.width, imageBitmap.height, 1],
           format: 'rgba8unorm',
-          usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST | GPUTextureUsage.RENDER_ATTACHMENT,
+          usage:
+            GPUTextureUsage.TEXTURE_BINDING |
+            GPUTextureUsage.COPY_DST |
+            GPUTextureUsage.RENDER_ATTACHMENT,
         });
-        device.queue.copyExternalImageToTexture({ source: imageBitmap }, { texture: modelTexture }, [
-          imageBitmap.width,
-          imageBitmap.height,
-          1,
-        ]);
+        device.queue.copyExternalImageToTexture(
+          { source: imageBitmap },
+          { texture: modelTexture },
+          [imageBitmap.width, imageBitmap.height, 1]
+        );
 
         const uniformLightBufferSize = 4 * 4;
         const uniformLightBuffer = device.createBuffer({
@@ -280,7 +288,11 @@
           const commandEncoder = device.createCommandEncoder();
 
           let viewMatrix = mat4.create();
-          mat4.translate(viewMatrix, viewMatrix, vec3.fromValues(-0.75, 1, -22));
+          mat4.translate(
+            viewMatrix,
+            viewMatrix,
+            vec3.fromValues(-0.75, 1, -22)
+          );
           mat4.rotate(viewMatrix, viewMatrix, 1.2 + -mouse.y * 0.35, [1, 0, 0]);
           const sceneTransform = mat4.create();
           mat4.multiply(sceneTransform, projectionMatrix, viewMatrix);
@@ -290,10 +302,18 @@
             usage: GPUBufferUsage.COPY_SRC,
             mappedAtCreation: true,
           });
-          new sceneTransform.constructor(updateUniformBuffer.getMappedRange()).set(sceneTransform);
+          new sceneTransform.constructor(
+            updateUniformBuffer.getMappedRange()
+          ).set(sceneTransform);
           updateUniformBuffer.unmap();
 
-          commandEncoder.copyBufferToBuffer(updateUniformBuffer, 0, uniformBuffer, 0, sceneTransform.byteLength);
+          commandEncoder.copyBufferToBuffer(
+            updateUniformBuffer,
+            0,
+            uniformBuffer,
+            0,
+            sceneTransform.byteLength
+          );
 
           const lightX = 50 * mouse.x - 25;
           const lightY = 100 * -mouse.y + 50;
@@ -303,7 +323,9 @@
             usage: GPUBufferUsage.COPY_SRC,
             mappedAtCreation: true,
           });
-          new lightPosition.constructor(updateUniformLightBuffer.getMappedRange()).set(lightPosition);
+          new lightPosition.constructor(
+            updateUniformLightBuffer.getMappedRange()
+          ).set(lightPosition);
           updateUniformLightBuffer.unmap();
 
           commandEncoder.copyBufferToBuffer(
@@ -334,7 +356,8 @@
               stencilStoreOp: 'store',
             },
           };
-          const passEncoder = commandEncoder.beginRenderPass(renderPassDescriptor);
+          const passEncoder =
+            commandEncoder.beginRenderPass(renderPassDescriptor);
           passEncoder.setPipeline(pipeline);
           passEncoder.setVertexBuffer(0, vertexBuffer);
           passEncoder.setVertexBuffer(1, normalBuffer);

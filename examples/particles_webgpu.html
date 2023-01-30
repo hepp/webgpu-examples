@@ -138,7 +138,10 @@
         const context = canvas.getContext('webgpu');
 
         const devicePixelRatio = window.devicePixelRatio || 1;
-        const presentationSize = [canvas.clientWidth * devicePixelRatio, canvas.clientHeight * devicePixelRatio];
+        const presentationSize = [
+          canvas.clientWidth * devicePixelRatio,
+          canvas.clientHeight * devicePixelRatio,
+        ];
         const presentationFormat = navigator.gpu.getPreferredCanvasFormat();
 
         context.configure({
@@ -281,7 +284,9 @@
           mappedAtCreation: true,
         });
 
-        const vertexData = [-1.0, -1.0, +1.0, -1.0, -1.0, +1.0, -1.0, +1.0, +1.0, -1.0, +1.0, +1.0];
+        const vertexData = [
+          -1.0, -1.0, +1.0, -1.0, -1.0, +1.0, -1.0, +1.0, +1.0, -1.0, +1.0, +1.0,
+        ];
         new Float32Array(quadVertexBuffer.getMappedRange()).set(vertexData);
         quadVertexBuffer.unmap();
 
@@ -316,6 +321,7 @@
           4 * 4 + // seed
           4 * 4 + // mouse
           0;
+          
         const simulationUBOBuffer = device.createBuffer({
           size: simulationUBOBufferSize,
           usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
@@ -395,7 +401,8 @@
           );
           const swapChainTexture = context.getCurrentTexture();
 
-          renderPassDescriptor.colorAttachments[0].view = swapChainTexture.createView();
+          renderPassDescriptor.colorAttachments[0].view =
+            swapChainTexture.createView();
 
           const commandEncoder = device.createCommandEncoder();
           {
@@ -406,7 +413,8 @@
             passEncoder.end();
           }
           {
-            const passEncoder = commandEncoder.beginRenderPass(renderPassDescriptor);
+            const passEncoder =
+              commandEncoder.beginRenderPass(renderPassDescriptor);
             passEncoder.setPipeline(renderPipeline);
             passEncoder.setBindGroup(0, uniformBindGroup);
             passEncoder.setVertexBuffer(0, particlesBuffer);

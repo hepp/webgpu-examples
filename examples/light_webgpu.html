@@ -1,0 +1,357 @@
+<html>
+  <head>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/gl-matrix/2.8.1/gl-matrix-min.js"
+      integrity="sha512-zhHQR0/H5SEBL3Wn6yYSaTTZej12z0hVZKOv3TwCUXT1z5qeqGcXJLLrbERYRScEDDpYIJhPC1fk31gqR783iQ=="
+      crossorigin="anonymous"
+      defer
+    ></script>
+    <script src="../assets/teapot.js"></script>
+  </head>
+  <body>
+    <canvas id="container" width="700px" height="450px"></canvas>
+    <script id="shader-wgsl" type="x-shader-wgsl">
+      struct Uniforms {
+        modelViewProjectionMatrix : mat4x4<f32>
+      }
+      @binding(0) @group(0) var<uniform> uniforms : Uniforms;
+
+      struct VertexOutput {
+          @builtin(position) Position : vec4<f32>,
+          @location(0) vPosition : vec4<f32>,
+          @location(1) vNormal : vec3<f32>,
+          @location(2) vTextureCoord : vec2<f32>
+      }
+
+      @vertex
+      fn vertex_main(
+          @location(0) position : vec3<f32>,
+          @location(1) normal : vec3<f32>,
+          @location(2) textureCoord : vec2<f32>
+      ) -> VertexOutput {
+          var output : VertexOutput;
+          output.vPosition = uniforms.modelViewProjectionMatrix * vec4<f32>(position, 1.0);
+          output.vNormal = normal;
+          output.vTextureCoord = textureCoord;
+          output.Position = uniforms.modelViewProjectionMatrix * vec4<f32>(position, 1.0);
+          return output;
+      }
+
+      @binding(1) @group(0) var mySampler: sampler;
+      @binding(2) @group(0) var myTexture: texture_2d<f32>;
+
+      struct Uniforms2 {
+          pointLightingLocation : vec3<f32>
+      }
+      @binding(3) @group(0) var<uniform> uniforms2 : Uniforms2;
+
+      struct FragmentOutput {
+          @location(0) outColor : vec4<f32>
+      };
+
+      @fragment
+      fn fragment_main(
+          @location(0) position: vec4<f32>,
+          @location(1) normal: vec3<f32>,
+          @location(2) uv: vec2<f32>
+      ) -> FragmentOutput {
+          var output : FragmentOutput;
+
+          var lightDirection: vec3<f32> = normalize(uniforms2.pointLightingLocation - position.xyz);
+          var lightWeighting: f32 = max(dot(normalize(normal), lightDirection), 0.0);
+
+          var lightColor: vec4<f32> = vec4((uniforms2.pointLightingLocation.x * .05) + 0.2,
+            (uniforms2.pointLightingLocation.x * .015) + 0.1,
+            (uniforms2.pointLightingLocation.x * .3) - 1.0,
+          1.0);
+
+          var resultsColor: vec4<f32> = lightColor +
+            textureSample(myTexture, mySampler, vec2(uv.x, (1.0 - uv.y) + 0.8)
+          );
+
+          output.outColor = vec4<f32>(resultsColor.rgb * lightWeighting, resultsColor.a);
+          return output;
+      }
+    </script>
+    <script>
+      const init = async () => {
+        const adapter = await navigator.gpu.requestAdapter();
+        const device = await adapter.requestDevice();
+
+        const canvas = document.getElementById('container');
+        const context = canvas.getContext('webgpu');
+
+        const devicePixelRatio = window.devicePixelRatio || 1;
+        const presentationSize = [canvas.clientWidth * devicePixelRatio, canvas.clientHeight * devicePixelRatio];
+        const presentationFormat = navigator.gpu.getPreferredCanvasFormat();
+
+        context.configure({
+          device,
+          size: presentationSize,
+          format: presentationFormat,
+          alphaMode: 'opaque',
+        });
+
+        teapotVertexArray = new Float32Array(teapot.vertexPositions);
+        const vertexBuffer = device.createBuffer({
+          size: teapotVertexArray.byteLength,
+          usage: GPUBufferUsage.VERTEX,
+          mappedAtCreation: true,
+        });
+        new Float32Array(vertexBuffer.getMappedRange()).set(teapotVertexArray);
+        vertexBuffer.unmap();
+
+        teapotNormalsArray = new Float32Array(teapot.vertexNormals);
+        const normalBuffer = device.createBuffer({
+          size: teapotNormalsArray.byteLength,
+          usage: GPUBufferUsage.VERTEX,
+          mappedAtCreation: true,
+        });
+        new Float32Array(normalBuffer.getMappedRange()).set(teapotNormalsArray);
+        normalBuffer.unmap();
+
+        teapotTextureCoordsArray = new Float32Array(teapot.vertexTextureCoords);
+        const coordBuffer = device.createBuffer({
+          size: teapotTextureCoordsArray.byteLength,
+          usage: GPUBufferUsage.VERTEX,
+          mappedAtCreation: true,
+        });
+        new Float32Array(coordBuffer.getMappedRange()).set(teapotTextureCoordsArray);
+        coordBuffer.unmap();
+
+        teapotIndicesArray = new Uint32Array(teapot.indices);
+        const indexBuffer = device.createBuffer({
+          size: teapotIndicesArray.byteLength,
+          usage: GPUBufferUsage.INDEX,
+          mappedAtCreation: true,
+        });
+        new Uint32Array(indexBuffer.getMappedRange()).set(teapotIndicesArray);
+        indexBuffer.unmap();
+
+        const shaderModule = device.createShaderModule({
+          code: document.getElementById('shader-wgsl').innerText,
+        });
+
+        const pipeline = device.createRenderPipeline({
+          layout: 'auto',
+          vertex: {
+            module: shaderModule,
+            entryPoint: 'vertex_main',
+            buffers: [
+              {
+                arrayStride: 3 * 4,
+                attributes: [
+                  {
+                    // position
+                    shaderLocation: 0,
+                    offset: 0,
+                    format: 'float32x3',
+                  },
+                ],
+              },
+              {
+                arrayStride: 3 * 4,
+                attributes: [
+                  {
+                    // normal
+                    shaderLocation: 1,
+                    offset: 0,
+                    format: 'float32x3',
+                  },
+                ],
+              },
+              {
+                arrayStride: 2 * 4,
+                attributes: [
+                  {
+                    // textureCoord
+                    shaderLocation: 2,
+                    offset: 0,
+                    format: 'float32x2',
+                  },
+                ],
+              },
+            ],
+          },
+          fragment: {
+            module: shaderModule,
+            entryPoint: 'fragment_main',
+            targets: [
+              {
+                format: presentationFormat,
+              },
+            ],
+          },
+          primitive: {
+            topology: 'triangle-list',
+          },
+          depthStencil: {
+            depthWriteEnabled: true,
+            depthCompare: 'less',
+            format: 'depth24plus-stencil8',
+          },
+        });
+
+        const uniformBufferSize = 4 * 16;
+        const uniformBuffer = device.createBuffer({
+          size: uniformBufferSize,
+          usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+        });
+
+        const sampler = device.createSampler({
+          magFilter: 'linear',
+          minFilter: 'linear',
+          addressModeU: 'repeat',
+          addressModeV: 'repeat',
+        });
+
+        const img = document.createElement('img');
+        img.src = new URL(`../assets/disturb.jpg`, document.baseURI).href;
+        await img.decode();
+        const imageBitmap = await createImageBitmap(img);
+
+        console.log('Loaded Texture:', img.src);
+        console.log('Loaded Verticies:', teapot.vertexPositions.length);
+
+        const modelTexture = device.createTexture({
+          size: [imageBitmap.width, imageBitmap.height, 1],
+          format: 'rgba8unorm',
+          usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST | GPUTextureUsage.RENDER_ATTACHMENT,
+        });
+        device.queue.copyExternalImageToTexture({ source: imageBitmap }, { texture: modelTexture }, [
+          imageBitmap.width,
+          imageBitmap.height,
+          1,
+        ]);
+
+        const uniformLightBufferSize = 4 * 4;
+        const uniformLightBuffer = device.createBuffer({
+          size: uniformLightBufferSize,
+          usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+        });
+
+        const uniformBindGroup = device.createBindGroup({
+          layout: pipeline.getBindGroupLayout(0),
+          entries: [
+            {
+              binding: 0,
+              resource: {
+                buffer: uniformBuffer,
+              },
+            },
+            {
+              binding: 1,
+              resource: sampler,
+            },
+            {
+              binding: 2,
+              resource: modelTexture.createView(),
+            },
+            {
+              binding: 3,
+              resource: {
+                buffer: uniformLightBuffer,
+              },
+            },
+          ],
+        });
+
+        const aspect = presentationSize[0] / presentationSize[1];
+        let projectionMatrix = mat4.create();
+        mat4.perspective(projectionMatrix, 45, aspect, 0.1, 1000.0);
+
+        const depthTexture = device.createTexture({
+          size: {
+            width: canvas.width,
+            height: canvas.height,
+            depthOrArrayLayers: 1,
+          },
+          format: 'depth24plus-stencil8',
+          usage: GPUTextureUsage.RENDER_ATTACHMENT,
+        });
+
+        let mouse = { x: 0.6, y: 0.7 };
+        document.onmousemove = (event) => {
+          mouse.x = event.clientX / 700;
+          mouse.y = event.clientY / 450;
+        };
+
+        function frame() {
+          const commandEncoder = device.createCommandEncoder();
+
+          let viewMatrix = mat4.create();
+          mat4.translate(viewMatrix, viewMatrix, vec3.fromValues(-0.75, 1, -22));
+          mat4.rotate(viewMatrix, viewMatrix, 1.2 + -mouse.y * 0.35, [1, 0, 0]);
+          const sceneTransform = mat4.create();
+          mat4.multiply(sceneTransform, projectionMatrix, viewMatrix);
+
+          const updateUniformBuffer = device.createBuffer({
+            size: sceneTransform.byteLength,
+            usage: GPUBufferUsage.COPY_SRC,
+            mappedAtCreation: true,
+          });
+          new sceneTransform.constructor(updateUniformBuffer.getMappedRange()).set(sceneTransform);
+          updateUniformBuffer.unmap();
+
+          commandEncoder.copyBufferToBuffer(updateUniformBuffer, 0, uniformBuffer, 0, sceneTransform.byteLength);
+
+          const lightX = 50 * mouse.x - 25;
+          const lightY = 100 * -mouse.y + 50;
+          const lightPosition = new Float32Array([lightX, 5.0, -lightY]);
+          const updateUniformLightBuffer = device.createBuffer({
+            size: lightPosition.byteLength,
+            usage: GPUBufferUsage.COPY_SRC,
+            mappedAtCreation: true,
+          });
+          new lightPosition.constructor(updateUniformLightBuffer.getMappedRange()).set(lightPosition);
+          updateUniformLightBuffer.unmap();
+
+          commandEncoder.copyBufferToBuffer(
+            updateUniformLightBuffer,
+            0,
+            uniformLightBuffer,
+            0,
+            lightPosition.byteLength
+          );
+
+          const textureView = context.getCurrentTexture().createView();
+          const renderPassDescriptor = {
+            colorAttachments: [
+              {
+                view: textureView,
+                loadOp: 'clear',
+                clearValue: { r: 0.1, g: 0.1, b: 1, a: 1 },
+                storeOp: 'store',
+              },
+            ],
+            depthStencilAttachment: {
+              view: depthTexture.createView(),
+              depthClearValue: 1.0,
+              depthLoadOp: 'clear',
+              depthStoreOp: 'store',
+              stencilClearValue: 0,
+              stencilLoadOp: 'clear',
+              stencilStoreOp: 'store',
+            },
+          };
+          const passEncoder = commandEncoder.beginRenderPass(renderPassDescriptor);
+          passEncoder.setPipeline(pipeline);
+          passEncoder.setVertexBuffer(0, vertexBuffer);
+          passEncoder.setVertexBuffer(1, normalBuffer);
+          passEncoder.setVertexBuffer(2, coordBuffer);
+          passEncoder.setIndexBuffer(indexBuffer, 'uint32');
+          passEncoder.setBindGroup(0, uniformBindGroup);
+          passEncoder.drawIndexed(teapot.indices.length, 1, 0, 0, 0);
+          passEncoder.end();
+          device.queue.submit([commandEncoder.finish()]);
+          updateUniformBuffer.destroy();
+          updateUniformLightBuffer.destroy();
+
+          requestAnimationFrame(frame);
+        }
+        requestAnimationFrame(frame);
+      };
+      init();
+    </script>
+  </body>
+</html>

@@ -119,7 +119,7 @@
             1, -1, -1, 1,  1, 0, 0, 1,  1, 1,
             -1, 1, -1, 1,  0, 1, 0, 1,  0, 0,
         ]);
-        console.log('Vertices:', cubeVertexArray);
+        console.log('Vertices:', cubeVertexArray.length);
 
         const verticesBuffer = device.createBuffer({
           size: cubeVertexArray.byteLength,

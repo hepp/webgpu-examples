@@ -226,6 +226,7 @@
             GPUTextureUsage.COPY_DST |
             GPUTextureUsage.RENDER_ATTACHMENT,
         });
+
         device.queue.copyExternalImageToTexture(
           { source: imageBitmap },
           { texture: modelTexture },
@@ -308,10 +309,8 @@
           updateUniformBuffer.unmap();
 
           commandEncoder.copyBufferToBuffer(
-            updateUniformBuffer,
-            0,
-            uniformBuffer,
-            0,
+            updateUniformBuffer, 0,
+            uniformBuffer, 0,
             sceneTransform.byteLength
           );
 
@@ -329,10 +328,8 @@
           updateUniformLightBuffer.unmap();
 
           commandEncoder.copyBufferToBuffer(
-            updateUniformLightBuffer,
-            0,
-            uniformLightBuffer,
-            0,
+            updateUniformLightBuffer, 0,
+            uniformLightBuffer, 0,
             lightPosition.byteLength
           );
 

@@ -10,7 +10,7 @@
   </head>
   <body>
     <canvas id="container" width="700px" height="450px"></canvas>
-    <script id="shader-wgsl" type="x-shader-wgsl">
+    <script id="shader-wgsl-vertex" type="x-shader-wgsl">
       struct Uniforms {
         modelViewProjectionMatrix : mat4x4<f32>
       }
@@ -36,14 +36,15 @@
           output.Position = uniforms.modelViewProjectionMatrix * vec4<f32>(position, 1.0);
           return output;
       }
-
+    </script>
+    <script id="shader-wgsl-fragment" type="x-shader-wgsl">
       @binding(1) @group(0) var mySampler: sampler;
       @binding(2) @group(0) var myTexture: texture_2d<f32>;
 
-      struct Uniforms2 {
+      struct Uniforms {
           pointLightingLocation : vec3<f32>
       }
-      @binding(3) @group(0) var<uniform> uniforms2 : Uniforms2;
+      @binding(3) @group(0) var<uniform> uniforms : Uniforms;
 
       struct FragmentOutput {
           @location(0) outColor : vec4<f32>
@@ -57,12 +58,13 @@
       ) -> FragmentOutput {
           var output : FragmentOutput;
 
-          var lightDirection: vec3<f32> = normalize(uniforms2.pointLightingLocation - position.xyz);
+          var lightDirection: vec3<f32> = normalize(uniforms.pointLightingLocation - position.xyz);
           var lightWeighting: f32 = max(dot(normalize(normal), lightDirection), 0.0);
 
-          var lightColor: vec4<f32> = vec4((uniforms2.pointLightingLocation.x * .05) + 0.2,
-            (uniforms2.pointLightingLocation.x * .015) + 0.1,
-            (uniforms2.pointLightingLocation.x * .3) - 1.0,
+          var lightColor: vec4<f32> = vec4(
+            (uniforms.pointLightingLocation.x * .1) + 0.2,
+            (uniforms.pointLightingLocation.x * .07) + 0.1,
+            (uniforms.pointLightingLocation.x * .1) - 1.0,
           1.0);
 
           var resultsColor: vec4<f32> = lightColor +
@@ -133,14 +135,19 @@
         new Uint32Array(indexBuffer.getMappedRange()).set(teapotIndicesArray);
         indexBuffer.unmap();
 
-        const shaderModule = device.createShaderModule({
-          code: document.getElementById('shader-wgsl').innerText,
+
+        const shaderModuleVertex = device.createShaderModule({
+          code: document.getElementById('shader-wgsl-vertex').innerText,
+        });
+
+        const shaderModuleFragment = device.createShaderModule({
+          code: document.getElementById('shader-wgsl-fragment').innerText,
         });
 
         const pipeline = device.createRenderPipeline({
           layout: 'auto',
           vertex: {
-            module: shaderModule,
+            module: shaderModuleVertex,
             entryPoint: 'vertex_main',
             buffers: [
               {
@@ -179,7 +186,7 @@
             ],
           },
           fragment: {
-            module: shaderModule,
+            module: shaderModuleFragment,
             entryPoint: 'fragment_main',
             targets: [
               {

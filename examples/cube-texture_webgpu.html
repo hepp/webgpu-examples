@@ -24,7 +24,7 @@
       }
 
       @vertex
-      fn vertex_main(
+      fn vert_main(
           @location(0) position : vec4<f32>,
           @location(1) uv : vec2<f32>
       ) -> VertexOutput {
@@ -39,7 +39,7 @@
       @group(0) @binding(2) var myTexture: texture_2d<f32>;
 
       @fragment
-      fn fragment_main(
+      fn frag_main(
           @location(0) fragUV: vec2<f32>,
           @location(1) fragPosition: vec4<f32>
       ) -> @location(0) vec4<f32> {
@@ -136,7 +136,7 @@
           layout: 'auto',
           vertex: {
             module: shaderModule,
-            entryPoint: 'vertex_main',
+            entryPoint: 'vert_main',
             buffers: [
               {
                 arrayStride: cubeVertexSize,
@@ -157,7 +157,7 @@
           },
           fragment: {
             module: shaderModule,
-            entryPoint: 'fragment_main',
+            entryPoint: 'frag_main',
             targets: [
               {
                 format: presentationFormat,

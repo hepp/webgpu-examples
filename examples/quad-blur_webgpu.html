@@ -12,7 +12,7 @@
       }
 
       @vertex
-      fn vertex_main(
+      fn vert_main(
           @builtin(vertex_index) VertexIndex : u32
       ) -> VertexOutput {
 
@@ -33,7 +33,7 @@
       }
 
       @fragment
-      fn fragment_main(@location(0) fragUV : vec2<f32>) -> @location(0) vec4<f32> {
+      fn frag_main(@location(0) fragUV : vec2<f32>) -> @location(0) vec4<f32> {
           return textureSample(myTexture, mySampler, fragUV);
       }
     </script>
@@ -150,11 +150,11 @@
           layout: 'auto',
           vertex: {
             module: shaderModule,
-            entryPoint: 'vertex_main',
+            entryPoint: 'vert_main',
           },
           fragment: {
             module: shaderModule,
-            entryPoint: 'fragment_main',
+            entryPoint: 'frag_main',
             targets: [
               {
                 format: presentationFormat,

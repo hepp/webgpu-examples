@@ -4,7 +4,7 @@
 
     <script id="shader-wgsl" type="x-shader-wgsl">
       @vertex
-      fn vertex_main(
+      fn vert_main(
           @builtin(vertex_index) VertexIndex : u32
       ) -> @builtin(position) vec4<f32> {
           var pos = array<vec2<f32>, 3>(
@@ -17,7 +17,7 @@
       }
 
       @fragment
-      fn fragment_main() -> @location(0) vec4<f32> {
+      fn frag_main() -> @location(0) vec4<f32> {
           return vec4(1.0, 0.0, 0.0, 1.0);
       }
     </script>
@@ -51,11 +51,11 @@
           layout: 'auto',
           vertex: {
             module: shaderModule,
-            entryPoint: 'vertex_main',
+            entryPoint: 'vert_main',
           },
           fragment: {
             module: shaderModule,
-            entryPoint: 'fragment_main',
+            entryPoint: 'frag_main',
             targets: [
               {
                 format: presentationFormat,

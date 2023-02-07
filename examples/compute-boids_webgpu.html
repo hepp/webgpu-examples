@@ -2,15 +2,15 @@
   <body>
     <canvas id="container" width="700px" height="450px"></canvas>
 
-    <script id="shader-wgsl" type="x-shader-wgsl">
+    <script id="shader-wgsl-sprite" type="x-shader-wgsl">
 
       struct VertexOutput {
-          @builtin(position) Position : vec4<f32>,
-          @location(4) Color : vec4<f32>,
+          @builtin(position) position : vec4<f32>,
+          @location(4) color : vec4<f32>,
       }
 
       @vertex
-      fn vertex_main(
+      fn vert_main(
           @location(0) a_particlePos : vec2<f32>,
           @location(1) a_particleVel : vec2<f32>,
           @location(2) a_pos : vec2<f32>
@@ -22,8 +22,8 @@
           );
 
           var output : VertexOutput;
-          output.Position = vec4(pos + a_particlePos, 0.0, 1.0);
-          output.Color = vec4(
+          output.position = vec4(pos + a_particlePos, 0.0, 1.0);
+          output.color = vec4(
               1.0 - sin(angle + 1.0) - a_particleVel.y,
               pos.x * 100.0 - a_particleVel.y + 0.1,
               a_particleVel.x + cos(angle + 0.5),
@@ -32,15 +32,15 @@
       }
 
       struct FragmentInput {
-          @location(4) Color : vec3<f32>,
+          @location(4) color : vec3<f32>,
       }
 
       @fragment
-      fn fragment_main(@location(4) Color : vec4<f32>) -> @location(0) vec4<f32> {
-          return Color;
+      fn frag_main(@location(4) color : vec4<f32>) -> @location(0) vec4<f32> {
+          return color;
       }
     </script>
-    <script id="shader-wgsl-sprite" type="x-shader-wgsl">
+    <script id="shader-wgsl" type="x-shader-wgsl">
       struct Particle {
           pos : vec2<f32>,
           vel : vec2<f32>,
@@ -173,8 +173,8 @@
         const renderPipeline = device.createRenderPipeline({
           layout: 'auto',
           vertex: {
-            module: shaderModule,
-            entryPoint: 'vertex_main',
+            module: shaderSpriteModule,
+            entryPoint: 'vert_main',
             buffers: [
               {
                 arrayStride: 4 * 4,
@@ -206,8 +206,8 @@
             ],
           },
           fragment: {
-            module: shaderModule,
-            entryPoint: 'fragment_main',
+            module: shaderSpriteModule,
+            entryPoint: 'frag_main',
             targets: [
               {
                 format: presentationFormat,
@@ -222,7 +222,7 @@
         const computePipeline = device.createComputePipeline({
           layout: 'auto',
           compute: {
-            module: shaderSpriteModule,
+            module: shaderModule,
             entryPoint: 'main',
           },
         });

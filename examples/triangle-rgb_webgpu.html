@@ -8,7 +8,7 @@
           @location(0) color : vec4<f32>,
       };
       @vertex
-      fn vertex_main(@location(0) position: vec4<f32>,
+      fn vert_main(@location(0) position: vec4<f32>,
           @location(1) color: vec4<f32>) -> VertexOut
       {
           var output : VertexOut;
@@ -17,7 +17,7 @@
           return output;
       }
       @fragment
-      fn fragment_main(fragData: VertexOut) -> @location(0) vec4<f32> {
+      fn frag_main(fragData: VertexOut) -> @location(0) vec4<f32> {
           return fragData.color;
       }
     </script>
@@ -76,12 +76,12 @@
           layout: 'auto',
           vertex: {
             module: shaderModule,
-            entryPoint: 'vertex_main',
+            entryPoint: 'vert_main',
             buffers: vertexBuffersDescriptors,
           },
           fragment: {
             module: shaderModule,
-            entryPoint: 'fragment_main',
+            entryPoint: 'frag_main',
             targets: [
               {
                 format: presentationFormat,

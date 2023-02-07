@@ -24,7 +24,7 @@
       }
 
       @vertex
-      fn vertex_main(
+      fn vert_main(
           @location(0) position : vec3<f32>,
           @location(1) normal : vec3<f32>,
           @location(2) textureCoord : vec2<f32>
@@ -51,7 +51,7 @@
       };
 
       @fragment
-      fn fragment_main(
+      fn frag_main(
           @location(0) position: vec4<f32>,
           @location(1) normal: vec3<f32>,
           @location(2) uv: vec2<f32>
@@ -148,7 +148,7 @@
           layout: 'auto',
           vertex: {
             module: shaderModuleVertex,
-            entryPoint: 'vertex_main',
+            entryPoint: 'vert_main',
             buffers: [
               {
                 arrayStride: 3 * 4,
@@ -187,7 +187,7 @@
           },
           fragment: {
             module: shaderModuleFragment,
-            entryPoint: 'fragment_main',
+            entryPoint: 'frag_main',
             targets: [
               {
                 format: presentationFormat,

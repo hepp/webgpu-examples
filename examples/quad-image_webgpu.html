@@ -163,6 +163,7 @@
           passEncoder.end();
 
           device.queue.submit([commandEncoder.finish()]);
+          requestAnimationFrame(frame);
         }
 
         requestAnimationFrame(frame);

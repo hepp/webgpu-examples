@@ -1,3 +1,15 @@
+View live demo of these examples at [https://wgsl.dev/](https://wgsl.dev/)
+
+## Goal of The Examples
+
+Provide clear and consistent examples that:
+
+- Are composed of a single .html file, which includes all JS and shader code inline.
+- Are able to run directly without referencing TypeScript or other framework code.
+- Do not rely on external dependencies ([glMatrix](https://github.com/toji/gl-matrix) is the one exception).
+
+
+
 # WebGPU Examples & Live Demo Editor
 
 This project was created during my process of learning WebGPU.
@@ -10,15 +22,6 @@ For ongoing changes the main reference is the [Official WebGPU Explainer](https:
 
 Open to contributions and/or suggestions for improvements.
 
-
-## Goal of The Examples
-
-Provide clear and consistent examples that:
-
-- Are composed of a single .html file, which includes all JS and shader code inline.
-- Are able to run directly without referencing TypeScript or other framework code.
-- Are actively maintained and updated with the ongoing WebGPU changes.
-- Do not rely on external dependencies ([glMatrix](https://github.com/toji/gl-matrix) is the one exception).
 
 
 ## Using WebGPU

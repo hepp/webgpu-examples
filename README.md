@@ -13,7 +13,11 @@ Provide clear and consistent examples that:
 # WebGPU Examples & Live Demo Editor
 
 This project was created during my process of learning WebGPU.
-As a result this project became a reconstruction and representation of the official webgpu examples from [austin-eng](https://github.com/austinEng/webgpu-samples), with a few additions and expansions added.
+As a result this project became a reconstruction and representation of the official webgpu samples from [webgpu-samples](https://webgpu.github.io/webgpu-samples/), with a few additions and expansions added.
+
+Some of the changes here have been added back ot the official webgpu samples. (Such as [PR 227](https://github.com/webgpu/webgpu-samples/pull/227))
+
+
 Also a compute example was recreated from this [web.dev article](https://web.dev/gpu-compute/), as well as a light example that was built based on the teapot setup from [webgpu-test](https://github.com/cx20/webgpu-test).
 
 The library [glMatrix](https://github.com/toji/gl-matrix) is used as the only loaded dependency, which is included via a script tag inside each example. 

@@ -13,11 +13,11 @@
 
     <script id="shader-wgsl" type="x-shader-wgsl">
 
-      var<private> rand_seed : vec2<f32>;
+      var<private> rand_seed : vec2f;
 
       fn rand() -> f32 {
-          rand_seed.x = fract(cos(dot(rand_seed, vec2<f32>(23.14077926, 232.61690225))) * 136.8168);
-          rand_seed.y = fract(cos(dot(rand_seed, vec2<f32>(54.47856553, 345.84153136))) * 534.7645);
+          rand_seed.x = fract(cos(dot(rand_seed, vec2f(23.14077926, 232.61690225))) * 136.8168);
+          rand_seed.y = fract(cos(dot(rand_seed, vec2f(54.47856553, 345.84153136))) * 534.7645);
           return rand_seed.y;
       }
 
@@ -31,13 +31,13 @@
       struct VertexInput {
           @location(0) position : vec3<f32>,
           @location(1) color : vec4f,
-          @location(2) quad_pos : vec2<f32>, // -1..+1
+          @location(2) quad_pos : vec2f, // -1..+1
       }
 
       struct VertexOutput {
           @builtin(position) position : vec4f,
           @location(0) color : vec4f,
-          @location(1) quad_pos : vec2<f32>, // -1..+1
+          @location(1) quad_pos : vec2f, // -1..+1
       }
 
       @vertex
@@ -59,7 +59,7 @@
       struct SimulationParams {
           deltaTime : f32,
           seed : vec4f,
-          mouse : vec2<f32>,
+          mouse : vec2f,
           dist : f32,
       }
 
@@ -81,7 +81,7 @@
       fn simulate(
           @builtin(global_invocation_id) GlobalInvocationID : vec3<u32>
       ) {
-          rand_seed = (sim_params.seed.xy + vec2<f32>(GlobalInvocationID.xy)) * sim_params.seed.zw;
+          rand_seed = (sim_params.seed.xy + vec2f(GlobalInvocationID.xy)) * sim_params.seed.zw;
 
           let idx = GlobalInvocationID.x;
           var particle = data.particles[idx];
@@ -183,7 +183,7 @@
                 ],
               },
               {
-                arrayStride: 2 * 4, // vec2<f32>
+                arrayStride: 2 * 4, // vec2f
                 stepMode: 'vertex',
                 attributes: [
                   {
@@ -279,7 +279,7 @@
         };
 
         const quadVertexBuffer = device.createBuffer({
-          size: 6 * 2 * 4, // 6x vec2<f32>
+          size: 6 * 2 * 4, // 6x vec2f
           usage: GPUBufferUsage.VERTEX,
           mappedAtCreation: true,
         });

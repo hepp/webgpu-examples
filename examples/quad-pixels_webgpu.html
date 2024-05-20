@@ -12,7 +12,7 @@
 
       struct VertexOutput {
           @builtin(position) Position : vec4f,
-          @location(0) fragUV : vec2<f32>,
+          @location(0) fragUV : vec2f,
       }
 
       @vertex
@@ -20,7 +20,7 @@
           @builtin(vertex_index) VertexIndex : u32
       ) -> VertexOutput {
 
-          var pos = array<vec2<f32>, 6>(
+          var pos = array<vec2f, 6>(
               vec2( 1.0,  1.0), vec2( 1.0, -1.0), vec2(-1.0, -1.0),
               vec2( 1.0,  1.0), vec2(-1.0, -1.0), vec2(-1.0,  1.0),
           );
@@ -37,7 +37,7 @@
       }
 
       fn swirlT(
-          p:vec2<f32>, i:i32, x:f32, y:f32, time:f32, se1:i32, se2:f32, focus:f32
+          p:vec2f, i:i32, x:f32, y:f32, time:f32, se1:i32, se2:f32, focus:f32
       ) -> f32{
           return (x + ((focus / f32(i)) * sin((f32(i) * y) + time)
           + ((focus * 0.5) * f32(se1)) + se2));
@@ -45,11 +45,11 @@
 
       @fragment
       fn frag_main(
-          @location(0) fragUV : vec2<f32>
+          @location(0) fragUV : vec2f
       ) -> @location(0) vec4f {
           var time : f32 = (params.frameCount * .004);
-          var newp : vec2<f32>;
-          var p : vec2<f32> = fragUV;
+          var newp : vec2f;
+          var p : vec2f = fragUV;
           p.y -= params.mouseY;
 
           var i : i32 = 1i;

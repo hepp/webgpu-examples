@@ -8,7 +8,7 @@
 
       struct VertexOutput {
           @builtin(position) Position : vec4f,
-          @location(0) fragUV : vec2<f32>,
+          @location(0) fragUV : vec2f,
       }
 
       @vertex
@@ -16,7 +16,7 @@
           @builtin(vertex_index) VertexIndex : u32
       ) -> VertexOutput {
 
-          var pos = array<vec2<f32>, 6>(
+          var pos = array<vec2f, 6>(
               vec2( 1.0,  1.0), vec2( 1.0, -1.0), vec2(-1.0, -1.0),
               vec2( 1.0,  1.0), vec2(-1.0, -1.0), vec2(-1.0,  1.0),
           );
@@ -33,7 +33,7 @@
       }
 
       @fragment
-      fn frag_main(@location(0) fragUV : vec2<f32>) -> @location(0) vec4f {
+      fn frag_main(@location(0) fragUV : vec2f) -> @location(0) vec4f {
           return textureSample(myTexture, mySampler, fragUV);
       }
     </script>
@@ -76,7 +76,7 @@
               tile[r][4 * LocalInvocationID.x + u32(c)] = textureSampleLevel(
                   inputTex,
                   samp,
-                  (vec2<f32>(loadIndex) + vec2<f32>(0.25, 0.25)) / vec2<f32>(dims),
+                  (vec2f(loadIndex) + vec2f(0.25, 0.25)) / vec2f(dims),
                   0.0
               ).rgb;
           }

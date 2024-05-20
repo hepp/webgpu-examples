@@ -11,9 +11,9 @@
 
       @vertex
       fn vert_main(
-          @location(0) a_particlePos : vec2<f32>,
-          @location(1) a_particleVel : vec2<f32>,
-          @location(2) a_pos : vec2<f32>
+          @location(0) a_particlePos : vec2f,
+          @location(1) a_particleVel : vec2f,
+          @location(2) a_pos : vec2f
       ) -> VertexOutput {
           let angle = -atan2(a_particleVel.x, a_particleVel.y);
           let pos = vec2(
@@ -38,8 +38,8 @@
     </script>
     <script id="shader-wgsl" type="x-shader-wgsl">
       struct Particle {
-          pos : vec2<f32>,
-          vel : vec2<f32>,
+          pos : vec2f,
+          vel : vec2f,
       }
       struct SimParams {
           deltaT : f32,
@@ -70,8 +70,8 @@
           var colVel = vec2(0.0);
           var cMassCount = 0u;
           var cVelCount = 0u;
-          var pos : vec2<f32>;
-          var vel : vec2<f32>;
+          var pos : vec2f;
+          var vel : vec2f;
 
           for (var i = 0u; i < arrayLength(&particlesA.particles); i++) {
               if (i == index) {

@@ -114,15 +114,12 @@
         const canvas = document.getElementById('container');
         const context = canvas.getContext('webgpu');
 
-        const devicePixelRatio = window.devicePixelRatio || 1;
-        const presentationSize = [
-          canvas.clientWidth * devicePixelRatio,
-          canvas.clientHeight * devicePixelRatio,
-        ];
         const tileDim = 128;
         const batch = [4, 4];
-
+        
+        const presentationSize = [ 700, 450 ];
         const presentationFormat = navigator.gpu.getPreferredCanvasFormat();
+
         context.configure({
           device,
           size: presentationSize,

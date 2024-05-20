@@ -11,7 +11,7 @@
       @binding(0) @group(0) var<uniform> params : inputParams;
 
       struct VertexOutput {
-          @builtin(position) Position : vec4<f32>,
+          @builtin(position) Position : vec4f,
           @location(0) fragUV : vec2<f32>,
       }
 
@@ -46,7 +46,7 @@
       @fragment
       fn frag_main(
           @location(0) fragUV : vec2<f32>
-      ) -> @location(0) vec4<f32> {
+      ) -> @location(0) vec4f {
           var time : f32 = (params.frameCount * .004);
           var newp : vec2<f32>;
           var p : vec2<f32> = fragUV;
@@ -61,7 +61,7 @@
               p = newp;
               continuing { i++; }
           }
-          var swirl : vec4<f32> = vec4<f32>(((0.5f * sin((3.0f * p.x))) + 0.5f),
+          var swirl : vec4f = vec4f(((0.5f * sin((3.0f * p.x))) + 0.5f),
               ((0.5f * sin((3.0f * p.y))) + 0.5f), sin((p.x + p.y)), 1.0);
 
 

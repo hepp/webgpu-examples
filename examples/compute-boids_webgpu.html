@@ -5,8 +5,8 @@
     <script id="shader-wgsl-sprite" type="x-shader-wgsl">
 
       struct VertexOutput {
-          @builtin(position) position : vec4<f32>,
-          @location(4) color : vec4<f32>,
+          @builtin(position) position : vec4f,
+          @location(4) color : vec4f,
       }
 
       @vertex
@@ -32,7 +32,7 @@
       }
       
       @fragment
-      fn frag_main(@location(4) color : vec4<f32>) -> @location(0) vec4<f32> {
+      fn frag_main(@location(4) color : vec4f) -> @location(0) vec4f {
           return color;
       }
     </script>

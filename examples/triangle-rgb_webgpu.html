@@ -4,12 +4,12 @@
 
     <script id="shader-wgsl" type="x-shader-wgsl">
       struct VertexOut {
-          @builtin(position) position : vec4<f32>,
-          @location(0) color : vec4<f32>,
+          @builtin(position) position : vec4f,
+          @location(0) color : vec4f,
       };
       @vertex
-      fn vert_main(@location(0) position: vec4<f32>,
-          @location(1) color: vec4<f32>) -> VertexOut
+      fn vert_main(@location(0) position: vec4f,
+          @location(1) color: vec4f) -> VertexOut
       {
           var output : VertexOut;
           output.position = position;
@@ -17,7 +17,7 @@
           return output;
       }
       @fragment
-      fn frag_main(fragData: VertexOut) -> @location(0) vec4<f32> {
+      fn frag_main(fragData: VertexOut) -> @location(0) vec4f {
           return fragData.color;
       }
     </script>

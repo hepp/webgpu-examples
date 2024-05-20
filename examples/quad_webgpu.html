@@ -9,7 +9,7 @@
       @binding(0) @group(0) var<uniform> params : inputParams;
 
       struct VertexOutput {
-          @builtin(position) Position : vec4<f32>,
+          @builtin(position) Position : vec4f,
           @location(0) fragUV : vec2<f32>,
       }
 
@@ -37,7 +37,7 @@
       @fragment
       fn frag_main(
           @location(0) fragUV : vec2<f32>
-      ) -> @location(0) vec4<f32> {
+      ) -> @location(0) vec4f {
           var time : f32 = params.frameCount * 0.01;
           var rainbow : vec3<f32> = vec3(sin(time), sin(time + 2.0), sin(time + 4.0));
           return vec4(rainbow * fragUV.y + fragUV.x, 1.0);

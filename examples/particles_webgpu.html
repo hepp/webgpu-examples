@@ -30,13 +30,13 @@
 
       struct VertexInput {
           @location(0) position : vec3<f32>,
-          @location(1) color : vec4<f32>,
+          @location(1) color : vec4f,
           @location(2) quad_pos : vec2<f32>, // -1..+1
       }
 
       struct VertexOutput {
-          @builtin(position) position : vec4<f32>,
-          @location(0) color : vec4<f32>,
+          @builtin(position) position : vec4f,
+          @location(0) color : vec4f,
           @location(1) quad_pos : vec2<f32>, // -1..+1
       }
 
@@ -45,20 +45,20 @@
           var quad_pos = mat2x3<f32>(render_params.right, render_params.up) * in.quad_pos;
           var position = in.position + quad_pos * 0.01;
           var out : VertexOutput;
-          out.position = render_params.modelViewProjectionMatrix * vec4<f32>(position, 1.0);
+          out.position = render_params.modelViewProjectionMatrix * vec4f(position, 1.0);
           out.color = in.color;
           out.quad_pos = in.quad_pos;
           return out;
       }
 
       @fragment
-      fn fs_main(in : VertexOutput) -> @location(0) vec4<f32> {
+      fn fs_main(in : VertexOutput) -> @location(0) vec4f {
           return in.color;
       }
 
       struct SimulationParams {
           deltaTime : f32,
-          seed : vec4<f32>,
+          seed : vec4f,
           mouse : vec2<f32>,
           dist : f32,
       }
@@ -66,7 +66,7 @@
       struct Particle {
           position : vec3<f32>,
           lifetime : f32,
-          color    : vec4<f32>,
+          color    : vec4f,
           velocity : vec3<f32>,
       }
 

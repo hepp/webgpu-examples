@@ -17,8 +17,8 @@
       @binding(0) @group(0) var<uniform> uniforms : Uniforms;
 
       struct VertexOutput {
-          @builtin(position) Position : vec4<f32>,
-          @location(0) vPosition : vec4<f32>,
+          @builtin(position) Position : vec4f,
+          @location(0) vPosition : vec4f,
           @location(1) vNormal : vec3<f32>,
           @location(2) vTextureCoord : vec2<f32>
       }
@@ -30,10 +30,10 @@
           @location(2) textureCoord : vec2<f32>
       ) -> VertexOutput {
           var output : VertexOutput;
-          output.vPosition = uniforms.modelViewProjectionMatrix * vec4<f32>(position, 1.0);
+          output.vPosition = uniforms.modelViewProjectionMatrix * vec4f(position, 1.0);
           output.vNormal = normal;
           output.vTextureCoord = textureCoord;
-          output.Position = uniforms.modelViewProjectionMatrix * vec4<f32>(position, 1.0);
+          output.Position = uniforms.modelViewProjectionMatrix * vec4f(position, 1.0);
           return output;
       }
     </script>
@@ -47,12 +47,12 @@
       @binding(3) @group(0) var<uniform> uniforms : Uniforms;
 
       struct FragmentOutput {
-          @location(0) outColor : vec4<f32>
+          @location(0) outColor : vec4f
       };
 
       @fragment
       fn frag_main(
-          @location(0) position: vec4<f32>,
+          @location(0) position: vec4f,
           @location(1) normal: vec3<f32>,
           @location(2) uv: vec2<f32>
       ) -> FragmentOutput {
@@ -61,17 +61,17 @@
           var lightDirection: vec3<f32> = normalize(uniforms.pointLightingLocation - position.xyz);
           var lightWeighting: f32 = max(dot(normalize(normal), lightDirection), 0.0);
 
-          var lightColor: vec4<f32> = vec4(
+          var lightColor: vec4f = vec4(
             (uniforms.pointLightingLocation.x * .1) + 0.2,
             (uniforms.pointLightingLocation.x * .07) + 0.1,
             (uniforms.pointLightingLocation.x * .1) - 1.0,
           1.0);
 
-          var resultsColor: vec4<f32> = lightColor +
+          var resultsColor: vec4f = lightColor +
             textureSample(myTexture, mySampler, vec2(uv.x, (1.0 - uv.y) + 0.8)
           );
 
-          output.outColor = vec4<f32>(resultsColor.rgb * lightWeighting, resultsColor.a);
+          output.outColor = vec4f(resultsColor.rgb * lightWeighting, resultsColor.a);
           return output;
       }
     </script>

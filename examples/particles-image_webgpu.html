@@ -35,13 +35,13 @@
 
       struct VertexInput {
           @location(0) position : vec3<f32>,
-          @location(1) color : vec4<f32>,
+          @location(1) color : vec4f,
           @location(2) quad_pos : vec2<f32>, // -1..+1
       }
 
       struct VertexOutput {
-          @builtin(position) position : vec4<f32>,
-          @location(0) color : vec4<f32>,
+          @builtin(position) position : vec4f,
+          @location(0) color : vec4f,
           @location(1) quad_pos : vec2<f32>, // -1..+1
       }
 
@@ -50,7 +50,7 @@
           var quad_pos = mat2x3<f32>(render_params.right, render_params.up) * in.quad_pos;
           var position = in.position + quad_pos * 0.01;
           var out : VertexOutput;
-          out.position = render_params.modelViewProjectionMatrix * vec4<f32>(position, 1.0);
+          out.position = render_params.modelViewProjectionMatrix * vec4f(position, 1.0);
           out.color = in.color;
           out.quad_pos = in.quad_pos;
           return out;
@@ -60,7 +60,7 @@
       // Fragment shader
       ////////////////////////////////////////////////////////////////////////////////
       @fragment
-      fn fs_main(in : VertexOutput) -> @location(0) vec4<f32> {
+      fn fs_main(in : VertexOutput) -> @location(0) vec4f {
           var color = in.color;
           // Apply a circular particle alpha mask
           color.a = color.a * max(1.0 - length(in.quad_pos), 0.0);
@@ -72,14 +72,14 @@
       ////////////////////////////////////////////////////////////////////////////////
       struct SimulationParams {
           deltaTime : f32,
-          seed : vec4<f32>,
+          seed : vec4f,
           mouse : vec2<f32>,
       }
 
       struct Particle {
           position : vec3<f32>,
           lifetime : f32,
-          color    : vec4<f32>,
+          color    : vec4f,
           velocity : vec3<f32>,
       }
 
@@ -126,8 +126,8 @@
                   //  |   TOP-LEFT   |  TOP-RIGHT   | BOTTOM-LEFT  | BOTTOM_RIGHT |
                   //
                   let probabilites = textureLoad(texture, coord, level);
-                  let value = vec4<f32>(rand());
-                  let mask = (value >= vec4<f32>(0.0, probabilites.xyz)) & (value < probabilites);
+                  let value = vec4f(rand());
+                  let mask = (value >= vec4f(0.0, probabilites.xyz)) & (value < probabilites);
                   coord = coord * 2;
                   coord.x = coord.x + select(0, 1, any(mask.yw)); // x  y
                   coord.y = coord.y + select(0, 1, any(mask.zw)); // z  w
@@ -192,11 +192,11 @@
           let b = buf_in.weights[src_offset + 1u];
           let c = buf_in.weights[src_offset + 0u + ubo.width];
           let d = buf_in.weights[src_offset + 1u + ubo.width];
-          let sum = dot(vec4<f32>(a, b, c, d), vec4<f32>(1.0));
+          let sum = dot(vec4f(a, b, c, d), vec4f(1.0));
 
           buf_out.weights[dst_offset] = sum / 4.0;
 
-          let probabilities = vec4<f32>(a, a+b, a+b+c, sum) / max(sum, 0.0001);
+          let probabilities = vec4f(a, a+b, a+b+c, sum) / max(sum, 0.0001);
           textureStore(tex_out, vec2<i32>(coord.xy), probabilities);
         }
       }

@@ -12,7 +12,7 @@
     <canvas id="container" width="700px" height="450px"></canvas>
     <script id="shader-wgsl-vertex" type="x-shader-wgsl">
       struct Uniforms {
-        modelViewProjectionMatrix : mat4x4<f32>
+        modelViewProjectionMatrix : mat4x4f
       }
       @binding(0) @group(0) var<uniform> uniforms : Uniforms;
 

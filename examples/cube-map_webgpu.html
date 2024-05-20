@@ -13,7 +13,7 @@
 
     <script id="shader-wgsl" type="x-shader-wgsl">
       struct Uniforms {
-          modelViewProjectionMatrix : mat4x4<f32>,
+          modelViewProjectionMatrix : mat4x4f,
       }
       @binding(0) @group(0) var<uniform> uniforms : Uniforms;
 

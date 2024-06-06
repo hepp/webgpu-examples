@@ -15,7 +15,7 @@ Provide clear and consistent examples that:
 This project was created during my process of learning WebGPU.
 As a result this project became a reconstruction and representation of the official webgpu samples from [webgpu-samples](https://webgpu.github.io/webgpu-samples/), with a few additions and expansions added.
 
-Some of the changes here have been added back ot the official webgpu samples. (Such as [PR 227](https://github.com/webgpu/webgpu-samples/pull/227))
+Some of the changes here have been added back to the official webgpu samples. (Such as [PR 227](https://github.com/webgpu/webgpu-samples/pull/227))
 
 
 Also a compute example was recreated from this [web.dev article](https://web.dev/gpu-compute/), as well as a light example that was built based on the teapot setup from [webgpu-test](https://github.com/cx20/webgpu-test).
@@ -30,11 +30,9 @@ Open to contributions and/or suggestions for improvements.
 
 ## Using WebGPU
 
-WebGPU with Chrome: [Enabling via about://flags](https://developer.chrome.com/en/docs/web-platform/webgpu/#enabling-via-aboutflags) using the   `#enable-unsafe-webgpu`  at  `about://flags`.
+Latest version of Chrome now has WebGPU support built in!
 
-Use [Chrome Canary](https://www.google.com/chrome/canary/) for the most recent WebGPU changes.
-
-More up to date details for [additional browser support](%28https://caniuse.com/webgpu%29).
+For additional browsers, see [caniuse.com/webgpu](%28https://caniuse.com/webgpu%29).
 
 
 ## Viewing Examples in the Demo Editor
